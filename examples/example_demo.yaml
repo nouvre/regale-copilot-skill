@@ -1,0 +1,35 @@
+title: "Contoso Teams Integration - 5min Demo"
+audience: "IT Decision Makers / Sellers"
+scenes:
+  - id: scene-1
+    type: open
+    approx_duration_s: 20
+    surface_url: "https://app.contoso.example/home"
+    narration: "Welcome — introduce Contoso Teams integration and value prop."
+    beats:
+      - action: "Navigate to Teams app"
+        target_selector: "nav [aria-label=\"Apps\"]"
+    presenter_notes: "Start with user logged in as Contoso Sales demo persona."
+    persona:
+      name: "Contoso Demo Bot"
+      avatar_path: null
+
+  - id: scene-2
+    type: beat
+    approx_duration_s: 120
+    surface_url: "https://app.contoso.example/chat"
+    narration: "Show knowledge search and suggested responses."
+    beats:
+      - action: "Open knowledge tab"
+        target_selector: "#knowledge-tab"
+      - action: "Search 'pricing'"
+        target_selector: "input[name=\"q\"]"
+    presenter_notes: "Call out speed and accuracy."
+
+  - id: scene-3
+    type: close
+    approx_duration_s: 30
+    surface_url: "https://app.contoso.example/summary"
+    narration: "Summarize benefits; invite trial."
+    beats: []
+    presenter_notes: "Ask for next steps and handoff."

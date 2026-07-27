@@ -1,0 +1,11 @@
+{
+  "name": "regale-demo-generator",
+  "version": "0.1.0",
+  "description": "GitHub Copilot skill: conversational demo definition -> Regale Studio build (lightweight)",
+  "author": "Your Name",
+  "entrypoint": "parser.py",
+  "commands": {
+    "parse-docx": "python parser.py",
+    "build-demo": "python build_orchestrator.py"
+  }
+}
