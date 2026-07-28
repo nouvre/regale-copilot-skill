@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "regale-studio-uat": {
+      "type": "stdio",
+      "command": "C:\\Program Files\\Regale Studio UAT\\regale-mcp-bridge.exe",
+      "args": [],
+      "tools": ["*"]
+    }
+  }
+}
