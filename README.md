@@ -12,10 +12,14 @@ Quick setup (Windows):
 1) Install Python deps (used only for parsing):
    python -m pip install python-docx pyyaml
 
-2) Parse a .docx (two-column "What to say" / "What to show"):
-   python parser.py path\to\demo.docx -o output_demo.yaml
+2) Generate a demo from a plain-language prompt in Copilot (recommended):
+   - Open this folder in VS Code and start a Copilot chat on the same PC as Regale Studio.
+   - Tell the Copilot agent your demo brief (e.g., "Pitch SharePoint to an executive. Keep it short...").
+   - The agent will generate a structured preview in-chat (card/outline), allow inline edits, and then build to Regale after you confirm.
 
-3) Review/edit output_demo.yaml in chat or a text editor.
+3) (Optional) Parse a .docx (two-column "What to say" / "What to show"):
+   python parser.py path\to\demo.docx -o output_demo.yaml
+   The parser is available for teams who already maintain scripts; the default chat-first flow hides YAML from end users.
 
 4) To run the build, use the Copilot CLI or an MCP-capable Copilot client on the SAME PC as Regale Studio. The build_orchestrator.py is a template that expects an MCP client adapter; it prints planned steps and includes TODOs where Regale MCP calls belong.
 

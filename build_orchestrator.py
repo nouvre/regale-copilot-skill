@@ -121,10 +121,39 @@ def plan_build(demo: DemoDef):
     print(f"\n{'='*70}\n")
 
 
+def plan_build_from_object(demo: DemoDef):
+    """Accept a DemoDef object (built internally by an agent) and print a short structured preview and plan."""
+    # First print a structured preview
+    print(f"\n{'='*60}")
+    print(f"DEMO PREVIEW: {demo.title}")
+    print(f"Audience: {demo.audience}")
+    print(f"Scenes: {len(demo.scenes)}")
+    print(f"{'='*60}\n")
+    for idx, scene in enumerate(demo.scenes, start=1):
+        print(f"{idx}. {scene.id} — {scene.type} — ~{scene.approx_duration_s}s")
+        print(f"   URL: {scene.surface_url}")
+        print(f"   Narration: {scene.narration[:100]}{'...' if len(scene.narration)>100 else ''}")
+        if scene.beats:
+            print(f"   Beats:")
+            for bidx, b in enumerate(scene.beats, start=1):
+                print(f"     {bidx}. {b.action} -> {b.target_selector}")
+        print("")
+
+    print("PLANNED MCP STEPS (summary):")
+    print("  - precondition checks (permissions, open project, capturer)")
+    print("  - per-scene: navigate, stage persona, pause motion, capture, place objects, write narration, render")
+    print("  - post-build: save and/or publish if allowed")
+    print(f"\n{'='*60}\n")
+
+
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: python build_orchestrator.py demo.yaml')
-        sys.exit(2)
-    demo = load_demo_yaml(sys.argv[1])
-    plan_build(demo)
-    print("To execute: use the Copilot agent in VS Code (on the same PC as Regale Studio with the Capturer open).")
+    # Backwards-compatible CLI: if a YAML path is provided, plan from YAML
+    if len(sys.argv) == 2 and sys.argv[1].endswith('.yaml'):
+        demo = load_demo_yaml(sys.argv[1])
+        plan_build(demo)
+        print("To execute: use the Copilot agent in VS Code (on the same PC as Regale Studio with the Capturer open).")
+    else:
+        print('No demo YAML provided on CLI. This script supports two modes:')
+        print('  1) python build_orchestrator.py demo.yaml        (prints planned MCP calls)')
+        print('  2) Import this module in an agent environment and call plan_build_from_object(demo) where demo is a DemoDef object.')
+        sys.exit(0)
