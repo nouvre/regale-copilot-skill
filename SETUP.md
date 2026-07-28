@@ -1,83 +1,70 @@
-﻿# Setup Guide
+# Setup Guide
 
 ## Prerequisites
-- **Regale Studio** installed on your PC (download from [regale.app](https://regale.app))
-- **GitHub Copilot CLI** or **VS Code with Copilot** (with agent mode enabled)
-- **Python 3.8+** (for parsing .docx files)
+- Windows PC with Regale Studio installed and running.
+- VS Code with GitHub Copilot agent mode (or Copilot CLI) on the same PC as Regale Studio.
+- Python 3.8+ (optional; only needed for .docx parsing).
+- Git and a GitHub account (to clone this repo).
 
-## Installation
+## Quick configuration
 
-### 1. Clone this repo
-```bash
+1. Clone the repo:
+
+```
 git clone https://github.com/nouvre/regale-copilot-skill.git
 cd regale-copilot-skill
 ```
 
-### 2. Install Python dependencies
-```bash
-pip install python-docx pyyaml
+2. (Optional) Install Python dependencies for .docx parsing:
+
+```
+python -m pip install python-docx pyyaml
 ```
 
-### 3. Configure VS Code (if using VS Code agent mode)
-- Open this folder in VS Code
-- The .vscode/mcp.json is already configured to point to your local Regale Studio MCP server
-- Make sure Regale Studio is running on the same PC
+3. Configure VS Code for MCP (already included):
+- The file `.vscode/mcp.json` is preconfigured to point to the Regale MCP bridge as shipped with Regale Studio.
+- No additional edits should be necessary if Regale Studio is installed in the default location.
 
-### 4. Enable Regale permissions
-- Open **Regale Studio**
-- Click **AI & Agents** button in the ribbon
-- Go to **Permissions** tab
-- Toggle **ON**: "Save project files" and "Publish to the Regale portal"
+4. Ensure Regale Studio settings & permissions:
+- Open Regale Studio on the same PC.
+- Open **AI & Agents** → **Permissions**.
+- Toggle ON **Save project files** if you want the agent to save projects automatically.
+- Toggle ON **Publish to the Regale portal** if you want automatic publishing (optional).
 
-## Usage
+5. SSH / Git authentication (recommended):
+- Set up an SSH key and add it to GitHub for push/pull convenience:
 
-### Option A: From a plain-language demo goal
-In your Copilot chat, describe what you want:
-\\\
-Pitch SharePoint to an executive. Keep it short and lead with business value.
-Build this demo.
-\\\
+```
+ssh-keygen -t ed25519 -C "your_email@example.com"
+# then copy your public key and add it to GitHub > Settings > SSH and GPG keys
+```
 
-### Option B: From a Word document
-1. Prepare a .docx with a two-column table: "What to say" | "What to show"
-   - Left column: presenter narration with numbered steps
-   - Right column: UI surface descriptions
-2. Run the parser:
-   \\\ash
-   python parser.py your_demo.docx -o my_demo.yaml
-   \\\
-3. Review the generated YAML (in chat or locally)
-4. In your Copilot chat:
-   \\\
-   I have a demo YAML file. Build this demo.
-   \\\
-   (Then paste or upload the YAML)
+Alternative: use `gh auth login` or a Personal Access Token (PAT) for HTTPS pushes.
+
+## Using the chat-first flow (recommended)
+- Start your demo with an exact `/demo` line, for example:
+
+```
+/demo Pitch SharePoint to an executive. Keep it short; audience: CIO.
+```
+
+- Agent enters DEFINITION mode and returns a compact preview. Use the provided inline-edit commands to refine the plan. When ready, type the exact phrase `confirm build` to let the agent proceed to build.
+
+- Safety note: The agent will refuse to call Regale tools or start builds until `confirm build` is issued.
+
+## Optional: Parse existing Word demo scripts
+- The repo includes `parser.py` (for teams that still author Word scripts).
+- It expects a two-column table with headings "What to say" and "What to show".
+- Run:
+
+```
+python parser.py path\to\your.docx -o demo.yaml
+```
 
 ## Troubleshooting
+- If the agent says "Capturer not open": Open Regale Studio → View → Open Capturer.
+- If Save/Publish operations fail: re-check Regale Studio → AI & Agents → Permissions.
+- If git push fails: ensure SSH key is added to your GitHub account or run `gh auth login`.
 
-**"Regale Studio is not responding"**
-- Make sure Regale Studio is open with a project loaded
-
-**"SaveProject permission is OFF"**
-- Open Regale Studio → AI & Agents → Permissions → toggle "Save project files" ON
-
-**"Python module not found"**
-- Run: \pip install python-docx pyyaml\
-
-**Demo built but not saved**
-- Enable "Save project files" in Regale permissions (see step 4 above)
-
-## Examples
-
-See \examples/example_demo.yaml\ for a template. Edit it to customize:
-- Title and audience
-- Scenes (open/beat/close)
-- Surface URLs
-- Narration and presenter notes
-- Interactive beats (target selectors)
-
-For help with CSS selectors, open the page in your browser, right-click → Inspect, and copy the element's ID, class, or aria-label.
-
-## Questions or Issues?
-
-Open an issue on GitHub or contact your team lead.
+## Questions
+Open an issue in the repo or contact the adapter owner.

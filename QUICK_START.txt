@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+"""
+QUICK START for non-developers
+
+This folder contains everything you need to build interactive product demos in Regale Studio using GitHub Copilot.
+
+Files:
+- README.md                  — setup and overview
+- skill.md                   — the skill's purpose and workflow
+- AGENT_INSTRUCTIONS.md      — what the Copilot agent does (read once to understand the build process)
+- example_demo.yaml          — an example demo definition (inspect this format)
+- parser.py                  — parses Word .docx files (two-column table) into YAML
+- build_orchestrator.py      — prints the sequence of MCP calls (reference / dry-run planning)
+- mcp.json                   — Regale Studio MCP server configuration (place in .vscode/ or your CLI config)
+
+Steps to get started:
+
+1. On your Windows PC, open Regale Studio and create a new project (File → New).
+
+2. If you have a .docx file with a two-column "What to say / What to show" table, parse it:
+   python parser.py path/to/your_demo.docx -o demo.yaml
+   Then review and edit demo.yaml if you are an advanced user.
+
+3. If you're starting fresh, use the chat with Copilot (recommended):
+   - Start your demo with the exact command token on its own line: `/demo Pitch SharePoint to an executive. Keep it short; audience: CIO.`
+   - The agent will enter DEFINITION mode and return a compact, structured preview (card/outline). It will list a few short inline-edit commands you can use (examples below).
+   - Supported quick commands (exact syntax):
+     - `edit duration scene <n> <seconds>`
+     - `rename scene <n> "New Title"`
+     - `edit narration scene <n>: "...new text..."`
+     - `add beat scene <n>: <action> -> <selector>`
+     - `remove beat scene <n>: <beat-number>`
+     - `reorder scene <from> <to>`
+     - `confirm build`  (only this exact phrase transitions to BUILD mode)
+   - NOTE: The agent will refuse to call Regale tools or start builds until it receives `confirm build`.
+
+4. After you issue `confirm build`, the agent will:
+   - Check that Regale Studio is open and the HTML Capturer is ready.
+   - Run precondition checks (permissions, open project) and report any blockers.
+   - Navigate to each page, stage your persona (if provided), and capture.
+   - Place interactive click hotspots at the key moments.
+   - Write narration and presenter notes into each slide.
+   - Render pages for verification, then save/publish if permitted.
+   - Report completion (you can then open the demo in Regale Studio).
+
+What the agent needs from you:
+- A Regale Studio project (create one first).
+- The HTML Capturer window open (View → Open Capturer in Regale).
+- (Optional) Enabled permissions for auto-saving / publishing:
+  Regale → AI & Agents → Permissions → toggle "Save project files" and "Publish to the Regale portal".
+
+Questions or issues? Refer to AGENT_INSTRUCTIONS.md for the full workflow.
