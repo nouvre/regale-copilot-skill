@@ -5,15 +5,23 @@ Enable non-developer Microsoft sellers to generate interactive product demos in 
 - Providing plain-language goals (product, audience, target URL)
 - Uploading a Word .docx with a two-column "What to say / What to show" table
 
-The skill produces a YAML demo-definition for review/editing, then drives Regale Studio's local MCP server to build it automatically.
+The skill produces an internal demo-definition for review/editing, then drives Regale Studio's local MCP server to build it automatically after confirmation.
+
+## Activation Contract
+
+- A message beginning with `/demo` is the activation command for this Regale skill.
+- The user should not have to mention Regale, this skill, a surface, or a URL for the skill to activate.
+- `/demo <brief>` means "create a demo-definition preview", not "answer the brief".
+- After `/demo`, stay in DEFINITION mode and do not call Regale MCP tools, rename the session, write files, start a build, save, or publish until the user types exactly `confirm build`.
+- The first response must be a compact preview plus supported inline commands. Do not show raw YAML unless the user explicitly asks for YAML.
 
 ## Two Phases
 
 ### Phase 1: Definition (anywhere)
 - Accept plain-language goals or parse a .docx file (two-column table only).
-- Generate a YAML demo-definition conforming to the schema (title, audience, scenes with narration, beats, surface URLs, persona info).
-- Present the definition in chat for user review and inline editing.
-- Save the YAML to the chat workspace for build and future reuse.
+- Generate an internal demo-definition conforming to the schema (title, audience, scenes with narration, beats, surface URLs, persona info).
+- Present a compact preview in chat for user review and inline editing.
+- Keep the definition internal until the user confirms the build. Save or export YAML only if the user explicitly asks for it.
 
 ### Phase 2: Build (VS Code + Regale Studio, same PC)
 - Check connectivity: Regale Studio open, project loaded, Capturer ready.
@@ -26,13 +34,13 @@ The skill produces a YAML demo-definition for review/editing, then drives Regale
 ## Interaction Flow
 
 ### Define
-User: "I need a 5-minute demo of Microsoft Copilot for sales teams. [optional context paste or .docx upload]"
+User: "/demo I need a 5-minute demo of Microsoft Copilot for sales teams. [optional context paste or .docx upload]"
 
 Agent:
-1. If .docx: parse two-column table → YAML. If plain-language: extract goals → generate scaffold YAML.
-2. Present YAML in chat (syntax-highlighted, editable).
+1. If .docx: parse two-column table into an internal definition. If plain-language: extract goals and generate a scaffold definition.
+2. Present a compact preview in chat, not raw YAML.
 3. Invite user to refine (edit scene narration, add/remove beats, adjust durations, etc).
-4. Save final YAML to workspace.
+4. Wait for the exact phrase `confirm build`.
 
 ### Build
 User: "Build this demo. [Have you opened Regale Studio? Is Capturer open?]"

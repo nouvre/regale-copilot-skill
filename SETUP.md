@@ -45,7 +45,7 @@ Alternative: use `gh auth login` or a Personal Access Token (PAT) for HTTPS push
 - Start your demo with an exact `/demo` line, for example:
 
 ```
-/demo Pitch SharePoint to an executive. Keep it short; audience: CIO.
+/demo Pitch SharePoint to an executive. Keep it short and lead with business value.
 ```
 
 - Agent enters DEFINITION mode and returns a compact preview. Use the provided inline-edit commands to refine the plan. When ready, type the exact phrase `confirm build` to let the agent proceed to build.

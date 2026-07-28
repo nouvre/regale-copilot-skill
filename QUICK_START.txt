@@ -22,7 +22,7 @@ Steps to get started:
    Then review and edit demo.yaml if you are an advanced user.
 
 3. If you're starting fresh, use the chat with Copilot (recommended):
-   - Start your demo with the exact command token on its own line: `/demo Pitch SharePoint to an executive. Keep it short; audience: CIO.`
+   - Start your demo with the exact command token on its own line: `/demo Pitch SharePoint to an executive. Keep it short and lead with business value.`
    - The agent will enter DEFINITION mode and return a compact, structured preview (card/outline). It will list a few short inline-edit commands you can use (examples below).
    - Supported quick commands (exact syntax):
      - `edit duration scene <n> <seconds>`

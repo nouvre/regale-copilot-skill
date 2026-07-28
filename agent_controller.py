@@ -77,17 +77,55 @@ class AgentController:
         return ''
 
     def _infer_scenes_from_brief(self, brief: str) -> List[Scene]:
-        # Create a small 3-4 scene storyboard skeleton
-        scenes = []
-        scenes.append(Scene(id='scene-1', type='Hook', approx_duration_s=20,
-                            surface_url='', narration='Hook: state the problem succinctly.', beats=[]))
-        scenes.append(Scene(id='scene-2', type='Value', approx_duration_s=40,
-                            surface_url='', narration='Value: show how the product fixes it.', beats=[]))
-        scenes.append(Scene(id='scene-3', type='Use-case', approx_duration_s=40,
-                            surface_url='', narration='Use case example and metric.', beats=[]))
-        scenes.append(Scene(id='scene-4', type='CTA', approx_duration_s=20,
-                            surface_url='', narration='Call to action and next steps.', beats=[]))
-        return scenes
+        lower = brief.lower()
+        if 'sharepoint' in lower and 'executive' in lower:
+            return [
+                Scene(
+                    id='business-value',
+                    type='Hook',
+                    approx_duration_s=20,
+                    surface_url='https://www.microsoft.com/microsoft-365/sharepoint/collaboration',
+                    narration='Open with the business problem: scattered files slow decisions and increase governance risk.',
+                    beats=[
+                        Beat('Frame scattered content as a decision-speed problem', 'hero'),
+                        Beat('Position SharePoint as the governed intranet foundation', 'main'),
+                    ],
+                ),
+                Scene(
+                    id='single-governed-intranet',
+                    type='Value',
+                    approx_duration_s=35,
+                    surface_url='https://www.microsoft.com/microsoft-365/sharepoint/collaboration',
+                    narration='Show how one governed intranet gives every team a trusted place to find, share, and act on content.',
+                    beats=[
+                        Beat('Highlight one authoritative content home', 'nav'),
+                        Beat('Connect governance to lower risk and less duplicate work', 'main'),
+                    ],
+                ),
+                Scene(
+                    id='faster-decisions',
+                    type='Outcome',
+                    approx_duration_s=30,
+                    surface_url='https://www.microsoft.com/microsoft-365/sharepoint/collaboration',
+                    narration='Close on executive outcomes: less search time, clearer ownership, and faster cross-org decisions.',
+                    beats=[
+                        Beat('Tie content access to faster decision cycles', 'main'),
+                        Beat('Recommend a focused pilot with measurable outcomes', 'footer'),
+                    ],
+                ),
+            ]
+
+        # Create a small 3-4 scene storyboard skeleton.
+        return [
+            Scene(id='scene-1', type='Hook', approx_duration_s=20,
+                  surface_url='', narration='Hook: state the problem succinctly.', beats=[]),
+            Scene(id='scene-2', type='Value', approx_duration_s=40,
+                  surface_url='', narration='Value: show how the product fixes it.', beats=[]),
+            Scene(id='scene-3', type='Use-case', approx_duration_s=40,
+                  surface_url='', narration='Use case example and metric.', beats=[]),
+            Scene(id='scene-4', type='CTA', approx_duration_s=20,
+                  surface_url='', narration='Call to action and next steps.', beats=[]),
+        ]
 
     def render_compact_preview(self) -> str:
         if not self.demo:
@@ -102,6 +140,22 @@ class AgentController:
                 for b_idx, b in enumerate(s.beats, start=1):
                     lines.append(f"     - {b_idx}. {b.action} -> {b.target_selector}")
         return "\n".join(lines)
+
+    def render_supported_commands(self) -> str:
+        lines = [
+            'Supported commands:',
+            '- edit duration scene <n> <seconds>',
+            '- rename scene <n> "New Title"',
+            '- edit narration scene <n>: "...new text..."',
+            '- add beat scene <n>: <action> -> <selector>',
+            '- remove beat scene <n>: <beat-number>',
+            '- reorder scene <from> <to>',
+            '- confirm build',
+        ]
+        return "\n".join(lines)
+
+    def render_definition_response(self) -> str:
+        return f"{self.render_compact_preview()}\n\n{self.render_supported_commands()}\n\nWaiting for one command."
 
     def process_command(self, cmd: str) -> str:
         """Process a single inline command while in DEFINITION mode."""
@@ -182,9 +236,9 @@ class AgentController:
 # Small self-test when run directly
 if __name__ == '__main__':
     c = AgentController()
-    print(c.start_demo('/demo Pitch SharePoint to an executive. audience: CIO'))
-    print(c.render_compact_preview())
+    print(c.start_demo('/demo Pitch SharePoint to an executive. Keep it short and lead with business value, arguing how a single governed intranet cuts scattered files and drives faster decisions across the org.'))
+    print(c.render_definition_response())
     print(c.process_command('edit duration scene 2 30'))
-    print(c.render_compact_preview())
+    print(c.render_definition_response())
     print(c.process_command('confirm build'))
     print('Can execute build?', c.can_execute_build())
