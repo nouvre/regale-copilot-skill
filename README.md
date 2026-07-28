@@ -17,7 +17,7 @@ Quick setup (Windows):
    - Start your demo with the exact token `/demo` followed by a short brief (for example: `/demo Pitch SharePoint to an executive. Keep it short and lead with business value.`).
    - The agent will enter DEFINITION mode, generate a compact, structured preview in-chat (card/outline), allow short inline edits via commands, and will only proceed to build after you issue the exact phrase `confirm build`.
    - NOTE: the agent will refuse to call Regale MCP tools or start any background build while in DEFINITION mode.
-   - If Copilot answers with a normal pitch instead of a preview, confirm this repository is attached/open in the Copilot chat and that `.github/copilot-instructions.md` appears in the response references.
+   - If Copilot answers with a normal pitch instead of a preview, confirm this repository is open as the VS Code workspace, then type `/` and verify the workspace prompt command `demo` appears. The command is defined in `.github/prompts/demo.prompt.md`.
 
 3) (Optional) Parse a .docx (two-column "What to say" / "What to show"):
    python parser.py path\to\demo.docx -o output_demo.yaml
