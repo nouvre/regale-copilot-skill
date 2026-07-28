@@ -31,5 +31,6 @@ Supported commands:
 - `reorder scene <from> <to>`
 - `confirm build`
 
-Acceptance test: `/demo Pitch SharePoint to an executive...` must return a demo preview, not a SharePoint pitch.
+When the user types exactly `confirm build`, use the Regale Studio MCP tools to push the approved preview into Regale Studio. Do not merely restate the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
 
+Acceptance test: `/demo Pitch SharePoint to an executive...` must return a demo preview, not a SharePoint pitch.

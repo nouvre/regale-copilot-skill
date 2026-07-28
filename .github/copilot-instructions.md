@@ -29,6 +29,8 @@ Stay in DEFINITION mode until the user types exactly:
 confirm build
 ```
 
+After `confirm build`, transition to BUILD mode and use the Regale Studio MCP tools to push the approved preview into Regale Studio. Do not merely restate or rebuild the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
+
 ## First Response Shape
 
 The first response to `/demo` must contain only:
@@ -89,4 +91,3 @@ Supported commands:
 
 Waiting for one command.
 ```
-

@@ -47,6 +47,38 @@ If a URL or surface is missing, infer a reasonable public product surface for pr
 - `reorder scene <from> <to>`
 - `confirm build`
 
+## Build Mode
+
+When the user types exactly `confirm build`, transition to BUILD mode.
+
+Do not merely restate or rebuild the demo-definition in chat. BUILD mode means pushing the approved preview into Regale Studio through the `regale-studio-uat` MCP server.
+
+First, inspect available MCP tools. If no `regale_studio_uat-*` tools are available, stop and say:
+
+```text
+I am ready to build, but I cannot see the Regale Studio MCP tools yet. Confirm Regale Studio UAT is running, the MCP bridge is configured in $HOME\.copilot\mcp-config.json, and restart GitHub Copilot.
+```
+
+If Regale tools are available, run this sequence:
+
+1. Call `regale_studio_uat-get_agent_permissions`.
+2. Call `regale_studio_uat-get_open_project`.
+3. Call `regale_studio_uat-get_capturer_state`.
+4. If the capturer is not open, call `regale_studio_uat-open_html_capturer`.
+5. For each approved scene:
+   - Call `regale_studio_uat-navigate_capturer` with the scene URL.
+   - Call `regale_studio_uat-wait_for_capturer` with a reasonable timeout.
+   - Call `regale_studio_uat-set_capture_size_mode` for 1920x1080.
+   - Call `regale_studio_uat-pause_page_motion`.
+   - Call `regale_studio_uat-capture_html_page`.
+   - Add the scene narration to the captured slide/page description using the available text-setting tool.
+   - Add presenter notes if the available tools support it.
+   - Place click hotspots for beats when matching DOM targets can be found. If a target cannot be found, warn and continue.
+   - Render or verify the page if the available tools support it.
+6. Summarize the result with slide count, skipped hotspots, and any manual follow-up needed.
+
+If a listed tool name differs in the actual MCP tool list, use the closest Regale Studio MCP tool by purpose. Never claim the demo was pushed to Regale unless at least one Regale MCP capture/build tool succeeded.
+
 ## Acceptance Test
 
 For this prompt:

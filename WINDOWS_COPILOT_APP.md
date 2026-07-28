@@ -60,6 +60,18 @@ confirm build
 
 Only then should the agent call Regale MCP tools.
 
+Expected build behavior:
+
+- The agent should check Regale permissions, open project state, and Capturer state.
+- The agent should navigate/capture scenes in Regale Studio.
+- The agent should report slide capture progress.
+
+If the agent only prints another preview or says it "built demo-definition", it did not reach Regale Studio. Restart GitHub Copilot and confirm the Regale MCP server is configured:
+
+```powershell
+Get-Content "$HOME\.copilot\mcp-config.json"
+```
+
 ## Quick Troubleshooting
 
 - If `Regale Demo` does not appear under `/agent`, restart GitHub Copilot after running the installer.
