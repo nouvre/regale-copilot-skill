@@ -14,8 +14,9 @@ Quick setup (Windows):
 
 2) Generate a demo from a plain-language prompt in Copilot (recommended):
    - Open this folder in VS Code and start a Copilot chat on the same PC as Regale Studio.
-   - Tell the Copilot agent your demo brief (e.g., "Pitch SharePoint to an executive. Keep it short...").
-   - The agent will generate a structured preview in-chat (card/outline), allow inline edits, and then build to Regale after you confirm.
+   - Start your demo with the exact token `/demo` followed by a short brief (for example: `/demo Pitch SharePoint to an executive. Keep it short; audience: CIO.`).
+   - The agent will enter DEFINITION mode, generate a compact, structured preview in-chat (card/outline), allow short inline edits via commands, and will only proceed to build after you issue the exact phrase `confirm build`.
+   - NOTE: the agent will refuse to call Regale MCP tools or start any background build while in DEFINITION mode.
 
 3) (Optional) Parse a .docx (two-column "What to say" / "What to show"):
    python parser.py path\to\demo.docx -o output_demo.yaml

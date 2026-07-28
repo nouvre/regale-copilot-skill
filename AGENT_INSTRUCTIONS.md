@@ -93,6 +93,26 @@ For each scene in the YAML:
 
 ---
 
+Definition mode & commands
+
+- Start token: users MUST begin the demo definition with an exact command token on its own line: `/demo <brief text>` (for example: `/demo Pitch SharePoint to an executive. Keep it short; audience: CIO.`).
+- Mode enforcement: after `/demo` the agent enters DEFINITION mode and MUST NOT call any MCP tools, start background agents, rename the session, or perform any save/publish actions until the user issues the exact confirmation phrase `confirm build`.
+- Definition-mode behavior (agent):
+  - Parse the brief (or uploaded .docx) into an internal demo-definition object.
+  - Render a compact, scannable preview (card/outline): title, audience, numbered scenes with id/type/~s/url, one-line narration, and up to two beats each. Do NOT show raw YAML.
+  - Offer a short list of supported inline-edit commands and wait for a single user command.
+- Supported inline commands (exact syntax):
+  - `edit duration scene <n> <seconds>`
+  - `rename scene <n> "New Title"`
+  - `edit narration scene <n>: "...new text..."`
+  - `add beat scene <n>: <action> -> <selector>`
+  - `remove beat scene <n>: <beat-number>`
+  - `reorder scene <from> <to>`
+  - `confirm build`  <-- ONLY this exact phrase transitions to BUILD mode
+- Safety: if the user issues any other command, or says `build` without the exact `confirm build` phrase, the agent must ask for clarification and remain in DEFINITION mode.
+
+---
+
 **Example interaction:**
 
 User: "Build me a demo of Copilot for Sales, 5 minutes, showing knowledge search and deal insights."
