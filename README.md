@@ -17,9 +17,12 @@ What this repo contains (minimal, lightweight):
 - mcp.json             - Regale MCP server snippet (place in .vscode/mcp.json or your Copilot CLI config)
 
 Quick setup (Windows):
-1) For the GitHub Copilot app or Copilot CLI, use the one-command installer:
+1) For the GitHub Copilot app or Copilot CLI, use the installer from PowerShell:
 
-   powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1 | iex"
+   $u = 'https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1'
+   $p = Join-Path $env:TEMP 'install-regale-demo.ps1'
+   Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p
+   powershell -NoProfile -ExecutionPolicy Bypass -File $p
 
    Or, if this folder is already downloaded, double-click `install-regale-demo.cmd`.
 

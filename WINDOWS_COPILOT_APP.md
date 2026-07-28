@@ -7,10 +7,13 @@ Use this flow for the GitHub Copilot app or Copilot CLI on the same Windows mach
 1. Install and sign in to GitHub Copilot.
 2. Install Regale Studio UAT.
 3. Open PowerShell.
-4. Run the one-command installer:
+4. Run the installer:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1 | iex"
+$u = 'https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1'
+$p = Join-Path $env:TEMP 'install-regale-demo.ps1'
+Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p
+powershell -NoProfile -ExecutionPolicy Bypass -File $p
 ```
 
 If this repository is already downloaded, you can instead double-click:
