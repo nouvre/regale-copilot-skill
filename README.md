@@ -8,6 +8,8 @@ What this repo contains (minimal, lightweight):
 - .github/prompts/demo.prompt.md - VS Code prompt-file slash command fallback for `/demo`
 - .mcp.json            - GitHub Copilot local MCP configuration for Regale Studio UAT
 - scripts/install-copilot-user-assets.ps1 - Windows installer for personal Copilot agent/skill/MCP setup
+- scripts/install-from-github.ps1 - one-command installer that downloads the latest setup from GitHub
+- install-regale-demo.cmd - double-click installer for users who already have this folder
 - WINDOWS_COPILOT_APP.md - non-developer setup and daily-use guide
 - parser.py            - .docx (two-column) -> demo-definition YAML parser
 - build_orchestrator.py - MCP-driven build orchestration template (tool-discovery-driven)
@@ -15,9 +17,15 @@ What this repo contains (minimal, lightweight):
 - mcp.json             - Regale MCP server snippet (place in .vscode/mcp.json or your Copilot CLI config)
 
 Quick setup (Windows):
-1) For the GitHub Copilot app or Copilot CLI, run the one-time installer from PowerShell:
+1) For the GitHub Copilot app or Copilot CLI, use the one-command installer:
 
-   powershell -ExecutionPolicy Bypass -File .\scripts\install-copilot-user-assets.ps1
+   powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1 | iex"
+
+   Or, if this folder is already downloaded, double-click `install-regale-demo.cmd`.
+
+   Advanced/local install:
+
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-copilot-user-assets.ps1
 
    See WINDOWS_COPILOT_APP.md for the non-developer setup and daily-use flow.
 
