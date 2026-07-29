@@ -91,8 +91,9 @@ If Regale tools are available, run this sequence:
    - For each scene, tell the user which product/window to bring forward and what screen state to prepare.
    - If the selected target is a monitor and Copilot is on that monitor, ask the user to click confirm, then immediately Alt+Tab or click into the browser. Wait several seconds before calling `regale_studio_uat-start_capture`.
    - If the selected target is an explicit browser/window target, call `regale_studio_uat-start_capture` when the user confirms the screen is ready.
+   - If capture returns zero frames or the wrong surface, do not automatically switch to HTML Capturer. Re-list capture targets and ask the user to choose an explicit browser/window target or monitor target.
    - After each capture, add narration/notes and hotspots using the available Regale page/object tools.
-6. If screen/window capture tools are not available, fall back to the HTML Capturer workflow:
+6. Use the HTML Capturer workflow only if screen/window capture tools are unavailable or the user explicitly chooses HTML Capturer after being told it uses a separate browser profile and may require signing in again:
    - Call `regale_studio_uat-get_capturer_state`.
    - If the capturer is not open, call `regale_studio_uat-open_html_capturer`.
 7. For each approved scene in HTML Capturer mode:

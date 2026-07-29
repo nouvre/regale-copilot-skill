@@ -69,7 +69,8 @@ Expected build behavior:
 - The agent should identify products/surfaces required by the demo and ask you to open browser tabs/windows and sign in before capture begins.
 - If screen/window capture tools are available, the agent should list capture targets such as monitors, browser/window targets if available, and Active Window.
 - Prefer an explicit browser/window target or a monitor that shows the browser. Avoid Active Window when Copilot is the foreground window.
-- If screen/window capture tools are not available, the agent should fall back to HTML Capturer.
+- If screen/window capture returns zero frames or the wrong surface, the agent should re-list capture targets and retry a browser/window or monitor target.
+- The agent should use HTML Capturer only if screen/window capture tools are unavailable or you explicitly choose it. HTML Capturer uses a separate browser profile, so you may need to sign in again.
 - The agent should navigate/capture scenes in Regale Studio or guide you to prepare each browser state before capture.
 - The agent should report slide capture progress.
 

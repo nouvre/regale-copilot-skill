@@ -61,10 +61,13 @@ Choose one capture mode:
    - Tell the user which product/window to bring forward and what screen/state to prepare.
    - If using a monitor target and Copilot is on that monitor, ask the user to confirm and immediately switch to the browser, then wait several seconds before calling `regale_studio_uat-start_capture(...)`.
    - If using an explicit browser/window target, call `regale_studio_uat-start_capture(...)` after the user confirms the screen is ready.
+   - If capture returns zero frames or the wrong surface, re-list capture targets and retry explicit browser/window or monitor capture. Do not automatically switch to HTML Capturer.
    - Add narration/notes and interactive objects using the available Regale tools.
    - Report the captured slide/page.
 
-**B. HTML Capturer mode (fallback)**
+**B. HTML Capturer mode (explicit fallback)**
+Use HTML Capturer only when screen/window capture tools are unavailable or the user explicitly chooses it after being told it uses a separate browser profile and may require signing in again.
+
 For each scene:
 1. Navigate the Capturer:
    - Call `regale_studio_uat-navigate_capturer(url=scene.surface_url)` to visit the page.
