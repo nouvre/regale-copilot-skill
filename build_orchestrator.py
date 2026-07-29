@@ -87,10 +87,12 @@ def plan_build(demo: DemoDef):
     print("  1. Derive products/surfaces from scenes and present a login/prep checklist.")
     print("  2. Ask user to open browser tabs/windows and sign in before capture begins.")
     print("  3. regale_studio_uat-list_capture_targets()")
-    print("     → Present monitors and Active Window title/bounds.")
-    print("  4. Ask user to choose target, then regale_studio_uat-set_capture_target(target=...).")
-    print("  5. For each scene, prompt user to prepare the screen and call regale_studio_uat-start_capture().")
-    print("  6. Add narration/notes/hotspots with available Regale page/object tools.\n")
+    print("     → Present monitors, explicit browser/window targets if listed, and Active Window title/bounds.")
+    print("  4. Prefer explicit browser/window target; otherwise use browser monitor. Avoid Active Window when Copilot is active.")
+    print("  5. Ask user to choose target, then regale_studio_uat-set_capture_target(target=...).")
+    print("  6. For monitor targets, use a delayed switch workflow before regale_studio_uat-start_capture().")
+    print("  7. For each scene, prompt user to prepare the screen and call regale_studio_uat-start_capture().")
+    print("  8. Add narration/notes/hotspots with available Regale page/object tools.\n")
 
     print(f"\nHTML CAPTURER FALLBACK ({len(demo.scenes)} scenes):\n")
     

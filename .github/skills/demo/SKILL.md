@@ -74,11 +74,16 @@ If Regale tools are available, run this sequence:
    - `regale_studio_uat-start_capture`
 5. If screen/window capture tools are available, use the native capture-target workflow:
    - Call `regale_studio_uat-list_capture_targets`.
-   - Present the available targets in plain language, including monitor names and Active Window title.
-   - Ask the user to choose one target, such as `Active Window` or `Monitor 2`.
+   - Present the available targets in plain language, including monitor names, explicit browser/window targets if listed, and Active Window title.
+   - Do not default to `Active Window` when the user is chatting with GitHub Copilot on the same Windows desktop. Copilot will usually be the active window, so that target often records Copilot instead of the browser.
+   - Prefer an explicit browser window target by title when available, such as Microsoft Edge or the named Microsoft product.
+   - If explicit window targets are not available, prefer the monitor that contains the prepared browser window. Ask the user to move Copilot off that monitor when possible.
+   - Use `Active Window` only if the user has a reliable way to make the browser active before capture starts, such as a second monitor or a delayed switch workflow.
    - Call `regale_studio_uat-set_capture_target` with the chosen target.
    - Tell the user which target is selected.
-   - For each scene, tell the user which product/window to bring forward and what screen state to prepare, then call `regale_studio_uat-start_capture` when the user confirms the screen is ready.
+   - For each scene, tell the user which product/window to bring forward and what screen state to prepare.
+   - If the selected target is a monitor and Copilot is on that monitor, ask the user to click confirm, then immediately Alt+Tab or click into the browser. Wait several seconds before calling `regale_studio_uat-start_capture`.
+   - If the selected target is an explicit browser/window target, call `regale_studio_uat-start_capture` when the user confirms the screen is ready.
    - After each capture, add narration/notes and hotspots using the available Regale page/object tools.
 6. If screen/window capture tools are not available, fall back to the HTML Capturer workflow:
    - Call `regale_studio_uat-get_capturer_state`.

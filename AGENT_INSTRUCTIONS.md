@@ -50,13 +50,17 @@ Choose one capture mode:
 2. Present a login/prep checklist with product names and URLs when known.
 3. Ask the user to open those products in a browser and sign in.
 4. Wait for the user to confirm the products are open and signed in.
-5. Call `regale_studio_uat-list_capture_targets()` and present monitors plus Active Window in plain language.
-6. Ask the user which target to capture, such as `Active Window` or `Monitor 2`.
+5. Call `regale_studio_uat-list_capture_targets()` and present monitors, explicit browser/window targets if listed, and Active Window in plain language.
+6. Choose the target safely:
+   - Prefer an explicit browser/window target by title when available.
+   - Otherwise prefer the monitor that contains the prepared browser window.
+   - Do not default to `Active Window` while the user is chatting with GitHub Copilot on the same desktop, because Copilot will usually be the active window.
+   - Use `Active Window` only with a reliable delayed switch workflow or a second monitor.
 7. Call `regale_studio_uat-set_capture_target(...)` with the selected target.
 8. For each scene:
    - Tell the user which product/window to bring forward and what screen/state to prepare.
-   - Wait for the user to confirm the screen is ready.
-   - Call `regale_studio_uat-start_capture(...)`.
+   - If using a monitor target and Copilot is on that monitor, ask the user to confirm and immediately switch to the browser, then wait several seconds before calling `regale_studio_uat-start_capture(...)`.
+   - If using an explicit browser/window target, call `regale_studio_uat-start_capture(...)` after the user confirms the screen is ready.
    - Add narration/notes and interactive objects using the available Regale tools.
    - Report the captured slide/page.
 

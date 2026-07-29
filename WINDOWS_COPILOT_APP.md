@@ -67,7 +67,8 @@ Expected build behavior:
 
 - The agent should check Regale permissions, open project state, and Capturer state.
 - The agent should identify products/surfaces required by the demo and ask you to open browser tabs/windows and sign in before capture begins.
-- If screen/window capture tools are available, the agent should list capture targets such as monitors and Active Window, ask which target to use, then capture that target.
+- If screen/window capture tools are available, the agent should list capture targets such as monitors, browser/window targets if available, and Active Window.
+- Prefer an explicit browser/window target or a monitor that shows the browser. Avoid Active Window when Copilot is the foreground window.
 - If screen/window capture tools are not available, the agent should fall back to HTML Capturer.
 - The agent should navigate/capture scenes in Regale Studio or guide you to prepare each browser state before capture.
 - The agent should report slide capture progress.
@@ -83,5 +84,6 @@ Get-Content "$HOME\.copilot\mcp-config.json"
 - If `Regale Demo` does not appear under `/agent`, restart GitHub Copilot after running the installer.
 - If Regale tools are unavailable, confirm `$HOME\.copilot\mcp-config.json` contains `regale-studio-uat`.
 - If no capture target appears, bring the browser window to the foreground and ask the agent to call `regale_studio_uat-list_capture_targets` again.
+- If Active Window records Copilot instead of the browser, choose the monitor containing the browser or ask for a delayed switch workflow: click confirm, immediately switch to the browser, then let capture start after a few seconds.
 - If the agent answers with a normal pitch, make sure `Regale Demo` is selected before entering the brief.
 - If the MCP bridge cannot start, verify the path to `regale-mcp-bridge.exe`.
