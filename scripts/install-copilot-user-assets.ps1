@@ -36,13 +36,24 @@ Copy-Item -Recurse -Force $skillSource $skillTargetDir
 
 New-Item -ItemType Directory -Force -Path $copilotHome | Out-Null
 
+$mcpConfig = [pscustomobject]@{}
 if (Test-Path $mcpConfigPath) {
-    $mcpConfig = Get-Content $mcpConfigPath -Raw | ConvertFrom-Json
-} else {
-    $mcpConfig = [pscustomobject]@{}
+    $rawMcpConfig = Get-Content $mcpConfigPath -Raw
+    if (-not [string]::IsNullOrWhiteSpace($rawMcpConfig)) {
+        try {
+            $parsedMcpConfig = $rawMcpConfig | ConvertFrom-Json
+            if ($null -ne $parsedMcpConfig) {
+                $mcpConfig = $parsedMcpConfig
+            }
+        } catch {
+            $backupPath = "$mcpConfigPath.bak"
+            Copy-Item -Force $mcpConfigPath $backupPath
+            Write-Warning "Existing MCP config could not be parsed. Backed it up to '$backupPath' and created a fresh config."
+        }
+    }
 }
 
-if (-not $mcpConfig.PSObject.Properties.Name.Contains("mcpServers")) {
+if (@($mcpConfig.PSObject.Properties.Name) -notcontains "mcpServers") {
     $mcpConfig | Add-Member -MemberType NoteProperty -Name "mcpServers" -Value ([pscustomobject]@{})
 }
 
@@ -53,7 +64,7 @@ $serverConfig = [pscustomobject]@{
     tools = @("*")
 }
 
-if ($mcpConfig.mcpServers.PSObject.Properties.Name.Contains("regale-studio-uat")) {
+if (@($mcpConfig.mcpServers.PSObject.Properties.Name) -contains "regale-studio-uat") {
     $mcpConfig.mcpServers.PSObject.Properties.Remove("regale-studio-uat")
 }
 
