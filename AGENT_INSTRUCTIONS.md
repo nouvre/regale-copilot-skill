@@ -32,13 +32,36 @@ Before attempting any build, call these Regale MCP tools:
   - "Publish is OFF. Enable it if you want to publish to the Regale portal."
   - Continue anyway (SaveProject/Publish OFF is not a blocker; user can manually save later).
 - `regale_studio_uat-get_open_project()` → Confirm a project is open. If no project: instruct user to create or open one in Regale.
-- `regale_studio_uat-get_capturer_state()` → Confirm HTML Capturer is open. If not:
+- Prefer native screen/window capture if these tools are available:
+  - `regale_studio_uat-list_capture_targets()`
+  - `regale_studio_uat-set_capture_target(...)`
+  - `regale_studio_uat-start_capture(...)`
+- If native screen/window capture is not available, use HTML Capturer:
+  - `regale_studio_uat-get_capturer_state()` → Confirm HTML Capturer is open. If not:
   - Try to open it: call `regale_studio_uat-open_html_capturer()`.
   - If open fails or user prefers manual: instruct user to manually open View → Open Capturer in Regale.
   - Stop and wait for user confirmation that Capturer is ready.
 
 **3. Build the demo (execution phase)**
-For each scene in the YAML:
+Choose one capture mode:
+
+**A. Native screen/window capture mode (preferred when available)**
+1. Identify the products/surfaces required by the approved scenes from scene titles, URLs, narration, and beats.
+2. Present a login/prep checklist with product names and URLs when known.
+3. Ask the user to open those products in a browser and sign in.
+4. Wait for the user to confirm the products are open and signed in.
+5. Call `regale_studio_uat-list_capture_targets()` and present monitors plus Active Window in plain language.
+6. Ask the user which target to capture, such as `Active Window` or `Monitor 2`.
+7. Call `regale_studio_uat-set_capture_target(...)` with the selected target.
+8. For each scene:
+   - Tell the user which product/window to bring forward and what screen/state to prepare.
+   - Wait for the user to confirm the screen is ready.
+   - Call `regale_studio_uat-start_capture(...)`.
+   - Add narration/notes and interactive objects using the available Regale tools.
+   - Report the captured slide/page.
+
+**B. HTML Capturer mode (fallback)**
+For each scene:
 1. Navigate the Capturer:
    - Call `regale_studio_uat-navigate_capturer(url=scene.surface_url)` to visit the page.
    - Call `regale_studio_uat-wait_for_capturer(timeoutMs=15000, quietMs=500, text=...)` to confirm page settled (optional: pass a known element text to verify correct page).

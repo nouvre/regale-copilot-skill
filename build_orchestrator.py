@@ -79,10 +79,20 @@ def plan_build(demo: DemoDef):
     print("     → Check SaveProject, Publish enabled; warn user if not.\n")
     print("  2. regale_studio_uat-get_open_project()")
     print("     → Confirm project is open; get selectedSectionId.\n")
-    print("  3. regale_studio_uat-get_capturer_state()")
-    print("     → Confirm HTML Capturer is open.\n")
+    print("  3. Discover capture mode:")
+    print("     → Prefer regale_studio_uat-list_capture_targets(), set_capture_target(), start_capture() if available.")
+    print("     → Fall back to regale_studio_uat-get_capturer_state() and HTML Capturer if not.\n")
 
-    print(f"\nPER-SCENE BUILD ({len(demo.scenes)} scenes):\n")
+    print("NATIVE SCREEN/WINDOW CAPTURE MODE (preferred if available):")
+    print("  1. Derive products/surfaces from scenes and present a login/prep checklist.")
+    print("  2. Ask user to open browser tabs/windows and sign in before capture begins.")
+    print("  3. regale_studio_uat-list_capture_targets()")
+    print("     → Present monitors and Active Window title/bounds.")
+    print("  4. Ask user to choose target, then regale_studio_uat-set_capture_target(target=...).")
+    print("  5. For each scene, prompt user to prepare the screen and call regale_studio_uat-start_capture().")
+    print("  6. Add narration/notes/hotspots with available Regale page/object tools.\n")
+
+    print(f"\nHTML CAPTURER FALLBACK ({len(demo.scenes)} scenes):\n")
     
     for idx, scene in enumerate(demo.scenes, start=1):
         print(f"\n  SCENE {idx}: {scene.id} ({scene.type})")
