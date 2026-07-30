@@ -74,33 +74,44 @@ If Regale tools are available, run this sequence:
 2. Call `regale_studio_uat-get_open_project`.
 3. Identify the products/surfaces required by the approved scenes:
    - Use scene titles, URLs, narration, and beats to derive a short list such as SharePoint, Microsoft Teams, Microsoft 365 admin center, Dynamics 365, or Copilot.
-   - Include URLs only when they are real and reachable, following the URL rules in First Response.
-   - List every scene URL verbatim and ask the user to confirm or correct each one before any capture begins. For scenes marked `(needs your tenant URL)`, ask for the real URL now and do not proceed with a placeholder.
+   - Name the product and the screen state each scene needs. In the native capture path the user drives the browser, so do not ask for or invent URLs here. Scene URLs are prep hints only.
    - Present a login/prep checklist and ask the user to open each product in a browser and sign in.
-   - Present a capture-method recommendation before capture begins:
-     - Recommend HTML Capturer for public pages or when the user can sign in inside Regale's Capturer profile.
-     - Recommend native browser/window or monitor capture for already-signed-in browser sessions, but warn that it may return zero frames in Parallels or other virtualized display environments.
-     - Recommend manual Regale recording if authenticated native capture returns zero frames and the user does not want to sign in again inside HTML Capturer.
-   - Do not capture yet. Wait for the user to confirm the required products are open and signed in.
-4. Discover whether screen/window capture tools are available:
-   - `regale_studio_uat-list_capture_targets`
-   - `regale_studio_uat-set_capture_target`
-   - `regale_studio_uat-start_capture`
+   - Do not recommend a capture method yet, and do not capture yet. Wait for the user to confirm the required products are open and signed in.
+4. Discover the real capture capability before recommending anything. Never choose a capture method blind.
+   - Call `regale_studio_uat-list_capture_targets` and read what actually came back.
+   - Confirm a project is open. `regale_studio_uat-start_capture` fails without one. If step 2 showed no open project, create or open one before capturing.
+   - Only then present a capture-method recommendation, grounded in the targets that were actually returned:
+     - Default to native monitor capture. The user signs in once and navigates to each scene state, so this path reaches authenticated, tenant-specific, and deep-linked screens that URL-driven capture cannot.
+     - Offer HTML Capturer only for genuinely public, unauthenticated pages, and only as an explicit user choice. It runs a separate browser profile that is not signed in, and it can only reach pages addressable by URL.
+     - Do not steer the user toward HTML Capturer on the grounds that native capture might fail. If native capture actually returns zero frames, which can happen in Parallels or other virtualized display environments, report it and offer HTML Capturer or manual Regale recording as recovery options at that point.
+   - State plainly which path you are taking and why before running it.
 5. If screen/window capture tools are available, use the native capture-target workflow:
-   - Call `regale_studio_uat-list_capture_targets`.
-   - Present the available targets in plain language, including monitor names, explicit browser/window targets if listed, and Active Window title.
-   - Do not default to `Active Window` when the user is chatting with GitHub Copilot on the same Windows desktop. Copilot will usually be the active window, so that target often records Copilot instead of the browser.
-   - Prefer an explicit browser window target by title when available, such as Microsoft Edge or the named Microsoft product.
-   - If explicit window targets are not available, prefer the monitor that contains the prepared browser window. Ask the user to move Copilot off that monitor when possible.
-   - Use `Active Window` only if the user has a reliable way to make the browser active before capture starts, such as a second monitor or a delayed switch workflow.
-   - Call `regale_studio_uat-set_capture_target` with the chosen target.
-   - Tell the user which target is selected.
-   - For each scene, tell the user which product/window to bring forward and what screen state to prepare.
-   - If the selected target is a monitor and Copilot is on that monitor, ask the user to click confirm, then immediately Alt+Tab or click into the browser. Wait several seconds before calling `regale_studio_uat-start_capture`.
-   - If the selected target is an explicit browser/window target, call `regale_studio_uat-start_capture` when the user confirms the screen is ready.
-   - If capture returns zero frames or the wrong surface, do not automatically switch to HTML Capturer. Re-list capture targets and ask the user to choose an explicit browser/window target or monitor target.
+   - Call `regale_studio_uat-list_capture_targets`. It returns exactly two kinds of target: each monitor (index, name, bounds, DPI) and the single special `Active Window` target. Per-application and per-browser-window targets do not exist. Never wait for one, and never treat their absence as a reason to abandon native capture.
+   - Present the available monitors and the current `Active Window` title in plain language.
+   - Prefer the monitor showing the prepared browser. Monitor capture records whatever is visible on that screen, so a single-monitor machine is fully supported as long as the user brings the browser to the front before capture starts.
+   - Do not default to `Active Window` when the user is chatting with GitHub Copilot on the same desktop. Copilot will usually be the foreground window, so that target often records Copilot instead of the browser.
+   - A single monitor shared with Copilot is not a blocker and is not a reason to fall back to HTML Capturer.
+
+   Run this sequence for each scene:
+
+   a. Call `regale_studio_uat-set_capture_target` with the chosen monitor index or name. Tell the user which target is selected.
+   b. Set the capture mode with `regale_studio_uat-set_capture_mode`:
+      - Use `single` for a scene made of discrete screens. Each user click captures one frame, which suits scene-based demos and keeps the user in control.
+      - Use `continuous` for a flow that must be recorded over time. Pass `framesPerSecond` (1-24) and a `maxSeconds` auto-stop so recording ends on its own if the user cannot get back to chat.
+   c. Tell the user which product/window to bring forward and exactly what screen state to prepare.
+   d. Call `regale_studio_uat-set_studio_window` with state `minimize`. Monitor capture records the whole screen, so Regale Studio must be hidden or it will appear in the frames. Capture does not move this window for you.
+   e. Wait several seconds after the user confirms, so the window switch finishes before recording starts.
+   f. Call `regale_studio_uat-start_capture`.
+   g. In `single` mode, tell the user to click once per screen they want captured. In `continuous` mode, tell them to drive the flow now.
+   h. Call `regale_studio_uat-end_capture` when the scene is done, or let `maxSeconds` stop it.
+   i. Call `regale_studio_uat-set_studio_window` with state `restore` to bring Studio back. `end_capture` does not restore it.
+   j. Frames are processed asynchronously. Wait a moment, then re-query with `regale_studio_uat-get_page` or `regale_studio_uat-get_open_project` before stating what was captured.
+   - If capture returns zero frames or the wrong surface, do not automatically switch to HTML Capturer. Report what was actually captured, then retry with a longer delay or a different monitor.
    - After each capture, add narration/notes and hotspots using the available Regale page/object tools.
 6. Use the HTML Capturer workflow only if screen/window capture tools are unavailable or the user explicitly chooses HTML Capturer after being told it uses a separate browser profile and may require signing in again:
+   - This is the only path that needs URLs. Apply the URL rules from First Response here.
+   - List every scene URL verbatim and ask the user to confirm or correct each one before capturing. For scenes marked `(needs your tenant URL)`, ask for the real URL now and never substitute a placeholder.
+   - If a scene needs authenticated or tenant-specific content, say so plainly: HTML Capturer is the wrong path for it because its profile is not signed in. Recommend native capture of the user's signed-in window instead.
    - Call `regale_studio_uat-get_capturer_state`.
    - If the capturer is not open, call `regale_studio_uat-open_html_capturer`.
 7. For each approved scene in HTML Capturer mode:
