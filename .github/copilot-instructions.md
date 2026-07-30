@@ -29,7 +29,7 @@ Stay in DEFINITION mode until the user types exactly:
 confirm build
 ```
 
-After `confirm build`, transition to BUILD mode and use the Regale Studio MCP tools to push the approved preview into Regale Studio. Do not merely restate or rebuild the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
+After `confirm build`, transition to BUILD mode: read `.github/skills/demo/BUILD_PIPELINE.md` and follow it. That file is the single source of truth for the build; do not build from memory. Do not merely restate or rebuild the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
 
 ## First Response Shape
 
@@ -84,7 +84,7 @@ Supported commands:
 - edit duration scene <n> <seconds>
 - rename scene <n> "New Title"
 - edit narration scene <n>: "...new text..."
-- add beat scene <n>: <action> -> <selector>
+- add beat scene <n>: <action>
 - remove beat scene <n>: <beat-number>
 - reorder scene <from> <to>
 - confirm build

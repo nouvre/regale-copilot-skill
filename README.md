@@ -3,6 +3,7 @@ Regale Studio Copilot Skill — Lightweight scaffold
 What this repo contains (minimal, lightweight):
 
 - manifest.json        - skill/extension metadata
+- .github/skills/demo/BUILD_PIPELINE.md - CANONICAL build pipeline; the only copy
 - .github/agents/regale-demo.agent.md - GitHub Copilot app custom agent for native demo sessions
 - .github/skills/demo/SKILL.md - Copilot Agent Skill exposed as `/demo`
 - .github/prompts/demo.prompt.md - VS Code prompt-file slash command fallback for `/demo`
@@ -11,10 +12,15 @@ What this repo contains (minimal, lightweight):
 - scripts/install-from-github.ps1 - one-command installer that downloads the latest setup from GitHub
 - install-regale-demo.cmd - double-click installer for users who already have this folder
 - WINDOWS_COPILOT_APP.md - non-developer setup and daily-use guide
+- skill.md             - human-facing overview: purpose, v1 scope, how a demo maps onto Regale
 - parser.py            - .docx (two-column) -> demo-definition YAML parser
 - build_orchestrator.py - MCP-driven build orchestration template (tool-discovery-driven)
-- example_demo.yaml    - example demo-definition conforming to the schema
-- mcp.json             - Regale MCP server snippet (place in .vscode/mcp.json or your Copilot CLI config)
+- examples/example_demo.yaml - example demo-definition conforming to the schema
+- .mcp.json            - Regale MCP server snippet (place in .vscode/mcp.json or your Copilot CLI config)
+
+Editing behaviour: change `.github/skills/demo/BUILD_PIPELINE.md` and nothing else. The
+definition-mode rules are duplicated across five runtime files because Copilot's skill,
+agent, and prompt formats each load their own; the build pipeline deliberately is not.
 
 Quick setup (Windows):
 1) For the GitHub Copilot app or Copilot CLI, use the installer from PowerShell:

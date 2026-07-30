@@ -26,11 +26,11 @@ Supported commands:
 - `edit duration scene <n> <seconds>`
 - `rename scene <n> "New Title"`
 - `edit narration scene <n>: "...new text..."`
-- `add beat scene <n>: <action> -> <selector>`
+- `add beat scene <n>: <action>` (optionally `-> <target>`; plain language or a CSS selector)
 - `remove beat scene <n>: <beat-number>`
 - `reorder scene <from> <to>`
 - `confirm build`
 
-When the user types exactly `confirm build`, use the Regale Studio MCP tools to push the approved preview into Regale Studio. Do not merely restate the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
+When the user types exactly `confirm build`, read `.github/skills/demo/BUILD_PIPELINE.md` and follow it. That file is the single source of truth for the build; do not build from memory. Do not merely restate the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
 
 Acceptance test: `/demo Pitch SharePoint to an executive...` must return a demo preview, not a SharePoint pitch.

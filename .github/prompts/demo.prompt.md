@@ -52,7 +52,7 @@ If a URL or surface is missing, infer one only when it is a real, publicly reach
 - `edit duration scene <n> <seconds>`
 - `rename scene <n> "New Title"`
 - `edit narration scene <n>: "...new text..."`
-- `add beat scene <n>: <action> -> <selector>`
+- `add beat scene <n>: <action>` (optionally `-> <target>`; plain language or a CSS selector)
 - `remove beat scene <n>: <beat-number>`
 - `reorder scene <from> <to>`
 - `confirm build`
@@ -93,7 +93,7 @@ Supported commands:
 - edit duration scene <n> <seconds>
 - rename scene <n> "New Title"
 - edit narration scene <n>: "...new text..."
-- add beat scene <n>: <action> -> <selector>
+- add beat scene <n>: <action>
 - remove beat scene <n>: <beat-number>
 - reorder scene <from> <to>
 - confirm build
