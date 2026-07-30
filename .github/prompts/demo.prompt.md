@@ -45,7 +45,7 @@ Return only:
 
 Do not show raw YAML unless the user explicitly asks for YAML.
 
-If a URL or surface is missing, infer a reasonable public product surface for preview purposes. Ask one short clarifying question only if the missing URL blocks the preview.
+If a URL or surface is missing, infer one only when it is a real, publicly reachable vendor-owned page such as a product page on `www.microsoft.com` or `learn.microsoft.com`. Never invent a tenant-specific hostname such as `contoso.sharepoint.com`, `fabrikam.*`, `*.onmicrosoft.com`, or any `*.sharepoint.com` / `*.crm.dynamics.com` host the user has not supplied — those do not resolve, and capture records a browser error page instead of the product. For tenant-specific surfaces, leave the URL empty, mark it `(needs your tenant URL)`, and ask for it at build time. Ask one short clarifying question only if the missing URL blocks the preview.
 
 ## Supported Commands
 

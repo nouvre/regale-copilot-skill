@@ -42,7 +42,16 @@ Return only:
 
 Do not show raw YAML unless the user explicitly asks for YAML.
 
-If a URL or surface is missing, infer a reasonable public product surface for preview purposes. Ask one short clarifying question only if the missing URL blocks the preview.
+If a URL or surface is missing, infer one only when it is a real, publicly reachable page owned by the vendor, such as a product marketing or documentation page on `www.microsoft.com` or `learn.microsoft.com`.
+
+Never invent a tenant, org, or account-specific hostname. Those do not resolve, and capture will record a browser error page instead of the product. Specifically, never use:
+
+- Placeholder tenants such as `contoso.*`, `fabrikam.*`, `adventureworks.*`, `example.com`, or any `*.example` host.
+- Any `*.sharepoint.com`, `*.crm.dynamics.com`, `*.onmicrosoft.com`, `*.service-now.com`, or similar tenant host that the user has not given you.
+
+When a scene needs a tenant-specific surface, leave the URL empty and mark it `URL: (needs your tenant URL)`. Do not guess one. Ask for it once at build time, not during the preview.
+
+Ask one short clarifying question only if the missing URL blocks the preview.
 
 ## Supported Commands
 
@@ -72,7 +81,8 @@ If Regale tools are available, run this sequence:
 2. Call `regale_studio_uat-get_open_project`.
 3. Identify the products/surfaces required by the approved scenes:
    - Use scene titles, URLs, narration, and beats to derive a short list such as SharePoint, Microsoft Teams, Microsoft 365 admin center, Dynamics 365, or Copilot.
-   - Include URLs when known or reasonably inferable.
+   - Include URLs only when they are real and reachable, following the URL rules in First Response.
+   - List every scene URL verbatim and ask the user to confirm or correct each one before any capture begins. For scenes marked `(needs your tenant URL)`, ask for the real URL now and do not proceed with a placeholder.
    - Present a login/prep checklist and ask the user to open each product in a browser and sign in.
    - Present a capture-method recommendation before capture begins:
      - Recommend HTML Capturer for public pages or when the user can sign in inside Regale's Capturer profile.
@@ -103,6 +113,11 @@ If Regale tools are available, run this sequence:
 7. For each approved scene in HTML Capturer mode:
    - Call `regale_studio_uat-navigate_capturer` with the scene URL.
    - Call `regale_studio_uat-wait_for_capturer` with a reasonable timeout.
+   - Verify the intended surface actually loaded before capturing anything. `wait_for_capturer` succeeding only means the browser finished rendering something, which includes error pages. Check the capturer's current URL, page title, and visible text using `regale_studio_uat-get_capturer_state` or the closest available tool, and treat all of the following as load failures:
+     - Browser error pages, including "Hmmm… can't reach this page", "This site can't be reached", "server IP address could not be found", `ERR_NAME_NOT_RESOLVED`, `ERR_CONNECTION_REFUSED`, or any DNS/connection error text.
+     - HTTP 4xx or 5xx error pages.
+     - A redirect to a sign-in or consent page when the scene expected signed-in content.
+   - On a load failure, do not call `regale_studio_uat-capture_html_page` for that scene. Never capture an error page as a slide. Stop, report the exact URL that failed and what the page showed, and ask the user for a working URL before continuing.
    - Call `regale_studio_uat-set_capture_size_mode` for 1920x1080.
    - Call `regale_studio_uat-pause_page_motion`.
    - Call `regale_studio_uat-capture_html_page`.
