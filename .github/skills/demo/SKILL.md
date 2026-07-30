@@ -67,6 +67,10 @@ If Regale tools are available, run this sequence:
    - Use scene titles, URLs, narration, and beats to derive a short list such as SharePoint, Microsoft Teams, Microsoft 365 admin center, Dynamics 365, or Copilot.
    - Include URLs when known or reasonably inferable.
    - Present a login/prep checklist and ask the user to open each product in a browser and sign in.
+   - Present a capture-method recommendation before capture begins:
+     - Recommend HTML Capturer for public pages or when the user can sign in inside Regale's Capturer profile.
+     - Recommend native browser/window or monitor capture for already-signed-in browser sessions, but warn that it may return zero frames in Parallels or other virtualized display environments.
+     - Recommend manual Regale recording if authenticated native capture returns zero frames and the user does not want to sign in again inside HTML Capturer.
    - Do not capture yet. Wait for the user to confirm the required products are open and signed in.
 4. Discover whether screen/window capture tools are available:
    - `regale_studio_uat-list_capture_targets`

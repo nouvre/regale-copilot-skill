@@ -67,6 +67,10 @@ Expected build behavior:
 
 - The agent should check Regale permissions, open project state, and Capturer state.
 - The agent should identify products/surfaces required by the demo and ask you to open browser tabs/windows and sign in before capture begins.
+- The agent should recommend a capture method before capture starts:
+  - HTML Capturer for public pages or when signing in inside Capturer is acceptable.
+  - Native browser/window or monitor capture for already-signed-in browser sessions, with a warning that it may fail in Parallels or virtualized displays.
+  - Manual Regale recording if authenticated native capture returns zero frames and signing in again is not acceptable.
 - If screen/window capture tools are available, the agent should list capture targets such as monitors, browser/window targets if available, and Active Window.
 - Prefer an explicit browser/window target or a monitor that shows the browser. Avoid Active Window when Copilot is the foreground window.
 - If screen/window capture returns zero frames or the wrong surface, the agent should re-list capture targets and retry a browser/window or monitor target.

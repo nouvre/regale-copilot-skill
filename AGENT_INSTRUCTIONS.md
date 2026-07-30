@@ -48,16 +48,20 @@ Choose one capture mode:
 **A. Native screen/window capture mode (preferred when available)**
 1. Identify the products/surfaces required by the approved scenes from scene titles, URLs, narration, and beats.
 2. Present a login/prep checklist with product names and URLs when known.
-3. Ask the user to open those products in a browser and sign in.
-4. Wait for the user to confirm the products are open and signed in.
-5. Call `regale_studio_uat-list_capture_targets()` and present monitors, explicit browser/window targets if listed, and Active Window in plain language.
-6. Choose the target safely:
+3. Present a capture-method recommendation:
+   - HTML Capturer for public pages or when the user can sign in inside Regale's Capturer profile.
+   - Native browser/window or monitor capture for already-signed-in browser sessions, with a warning that it may return zero frames in Parallels or other virtualized display environments.
+   - Manual Regale recording if authenticated native capture returns zero frames and the user does not want to sign in again inside HTML Capturer.
+4. Ask the user to open those products in a browser and sign in.
+5. Wait for the user to confirm the products are open and signed in.
+6. Call `regale_studio_uat-list_capture_targets()` and present monitors, explicit browser/window targets if listed, and Active Window in plain language.
+7. Choose the target safely:
    - Prefer an explicit browser/window target by title when available.
    - Otherwise prefer the monitor that contains the prepared browser window.
    - Do not default to `Active Window` while the user is chatting with GitHub Copilot on the same desktop, because Copilot will usually be the active window.
    - Use `Active Window` only with a reliable delayed switch workflow or a second monitor.
-7. Call `regale_studio_uat-set_capture_target(...)` with the selected target.
-8. For each scene:
+8. Call `regale_studio_uat-set_capture_target(...)` with the selected target.
+9. For each scene:
    - Tell the user which product/window to bring forward and what screen/state to prepare.
    - If using a monitor target and Copilot is on that monitor, ask the user to confirm and immediately switch to the browser, then wait several seconds before calling `regale_studio_uat-start_capture(...)`.
    - If using an explicit browser/window target, call `regale_studio_uat-start_capture(...)` after the user confirms the screen is ready.
