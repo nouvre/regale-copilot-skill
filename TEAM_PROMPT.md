@@ -221,8 +221,18 @@ Home ribbon → AI & Agents → Permissions. Do not start capturing and fail hal
 - **Every tool call is one Ctrl+Z undo step**, which is why the seller can watch the build happen
   and revert anything they dislike.
 - Config shape differs per client: VS Code uses a top-level `servers` key with `"type": "stdio"`;
-  Claude uses `mcpServers` with `"type": "stdio"`; **Copilot CLI uses `mcpServers` with
-  `"type": "local"`** — its own name for stdio.
+  Claude uses `mcpServers` with `"type": "stdio"`; Regale's docs give the **Copilot CLI** form as
+  `mcpServers` with `"type": "local"` — its own name for stdio. **The Copilot desktop app reads the
+  same `~/.copilot/mcp-config.json` and accepts `"type": "stdio"`** — verified: the bridge
+  handshake completes and the tool list loads. This is the client the project is built around, so
+  the installer's `stdio` is correct as shipped. If someone drives a build from the CLI instead and
+  the server never connects, `"local"` is the first thing to try.
+- **Copilot does not reliably pick up a live tool-list change.** When Regale's permissions change,
+  the bridge sends a `ToolListChangedNotification` and Copilot logs
+  `[ERROR] Handling tools changed notification for regale-studio-uat`. So a permission the seller
+  enables mid-build may not become visible to the agent until Copilot is restarted. This is the
+  concrete reason the pipeline asks for every permission **up front** — not merely to avoid failing
+  halfway, but because enabling one late may not take effect at all in the running session.
 - `rglx.exe` ships with Studio and runs **without** Studio. Read commands (`info`, `pages`, `page`,
   `shapes`, `find`, `theme`, `build`, `dump`, `describe`) plus one transactional `apply` with
   `--dry-run`. `rglx pages --json` exposes each page's `contentType` and `originalUrl`, which makes
@@ -244,7 +254,9 @@ someone verifies it end to end.
 
 ## Known issues, not yet fixed
 
-Treat this as the backlog. None of it has been applied.
+Treat this as the backlog. None of it has been applied to the runtime files. Item 3 has been
+closed by verification rather than by a change — it is kept, struck through, so nobody
+re-discovers it and "fixes" a config that works.
 
 **Contradicts the documentation**
 
@@ -253,9 +265,12 @@ Treat this as the backlog. None of it has been applied.
    automatically. The *minimize* step before capture is still correct.
 2. The pipeline's permissions table omits **Open, close & switch projects** (needed by Phase 2) and
    **Screen capture & Studio window control** (needed by the whole native fallback).
-3. `scripts/install-copilot-user-assets.ps1` writes `type = "stdio"` into
-   `~/.copilot/mcp-config.json`. The Copilot CLI's documented type is `"local"`. The documented
-   sample also carries `env: {}` and `tools: ["*"]`. `.vscode/mcp.json` is correct as written.
+3. ~~`scripts/install-copilot-user-assets.ps1` writes the wrong MCP transport type.~~
+   **Resolved — not a defect.** The installer writes `type = "stdio"` into
+   `~/.copilot/mcp-config.json`; Regale's docs give `"local"` for the Copilot **CLI**. Verified on
+   a real machine: the Copilot **desktop app** reads the same file, accepts `stdio`, and completes
+   the bridge handshake. Leave it. Only revisit if someone drives a build from the CLI and the
+   server fails to connect.
 
 **Internal drift**
 
@@ -284,6 +299,11 @@ Treat this as the backlog. None of it has been applied.
     called blind.
 13. Nothing verifies the finished project. `rglx pages --json` or a live-vs-captured comparison
     would.
+14. Phase 1 tells the agent to ask for missing permissions up front so it does not fail halfway. It
+    should also say *why enabling one late may not work at all*: Copilot fails to handle the
+    bridge's tool-list-changed notification, so a permission switched on mid-session can stay
+    invisible to the agent until Copilot restarts. If a permission has to be enabled during a
+    build, tell the seller to restart Copilot and resume, rather than retrying the tool.
 
 ---
 
