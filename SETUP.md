@@ -15,11 +15,16 @@ git clone https://github.com/nouvre/regale-copilot-skill.git
 cd regale-copilot-skill
 ```
 
-2. (Optional) Install Python dependencies for .docx parsing:
+2. Create a virtual environment and install the Python dependencies (needed for .docx parsing and the build orchestrator):
 
 ```
-python -m pip install python-docx pyyaml
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
+
+On macOS/Linux use `python3 -m venv .venv` and `source .venv/bin/activate`.
+Run `deactivate` to leave the environment. The `.venv` folder is git-ignored.
 
 3. Configure VS Code for MCP (already included):
 - The file `.vscode/mcp.json` is preconfigured to point to the Regale MCP bridge as shipped with Regale Studio.

@@ -8,7 +8,7 @@ Usage:
   python parser.py input.docx -o demo.yaml
 
 Dependencies:
-  pip install python-docx pyyaml
+  pip install -r requirements.txt   (python-docx, pyyaml)
 
 This parser is intentionally minimal: it finds the first two-column table where the left column
 is 'What to say' and the right is 'What to show' (case-insensitive). Each table row becomes a scene.

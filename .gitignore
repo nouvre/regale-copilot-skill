@@ -1,0 +1,12 @@
+# Python virtual environment
+.venv/
+venv/
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local editor / OS noise
+.DS_Store
+Thumbs.db

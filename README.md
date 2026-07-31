@@ -38,8 +38,10 @@ Quick setup (Windows):
 
    See WINDOWS_COPILOT_APP.md for the non-developer setup and daily-use flow.
 
-2) Install Python deps if you need .docx parsing:
-   python -m pip install python-docx pyyaml
+2) Set up the Python environment (needed for .docx parsing):
+   py -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   python -m pip install -r requirements.txt
 
 3) Generate a demo from a plain-language prompt in Copilot (recommended):
    - In the GitHub Copilot app, open this repository as the project, type `/agent`, and select `Regale Demo`.
