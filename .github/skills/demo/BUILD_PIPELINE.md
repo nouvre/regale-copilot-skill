@@ -216,6 +216,10 @@ A scene is not one page. Each beat is a state the viewer clicks through, so a
 three-beat scene produces roughly four pages: the opening state plus one per click.
 Regale's own guidance is that more short pages beat a few long ones.
 
+Treat that as an estimate, not a contract. Build recording also creates a page on every
+full navigation, so the real count is usually higher. Read the pages back and work with
+what exists.
+
 ### Navigation
 
 Navigate to **one real entry URL** per scene, then reach every later state by clicking
@@ -232,54 +236,111 @@ Rules carried over and still binding:
 - A scene marked `(needs your tenant URL)` → try [Phase 3.5](#phase-35--discover-the-tenant-entry-url)
   first. Only ask the seller if redirect discovery fails.
 
-### Per scene
+### Record the scene, then write the talk track
 
-1. `add_section` named after the scene. Section names are announced by screen readers
-   on every page load, so make them meaningful.
-2. Navigate to the scene's entry URL, or continue clicking from where the previous
-   scene ended if it is the same app.
-3. `wait_for_capturer`, then **verify the page actually loaded** with
+**Use build recording.** Do not capture pages one at a time.
+
+While the capturer is recording, every click you make creates the next page *and* drops a
+themed beacon on the element you clicked, already named after it and already wired to
+advance. Regale does the beacon work — you cannot forget it, and it is far faster than
+placing hotspots by hand.
+
+This was verified against a running Studio: two agent clicks produced four pages, each
+with a correctly anchored, correctly named beacon whose click action pointed at the next
+page. The agent never called `instantiate_theme_shape` or `anchor_shape`.
+
+#### Per scene
+
+1. `add_section` named after the scene. Section names are announced by screen readers on
+   every page load, so make them meaningful.
+2. **`set_selection` to the section you just created.** Not optional. Captured pages land
+   in whichever section is *currently selected*, and `add_section` does **not** select the
+   section it creates. Skip this and you get correctly-named empty sections with every
+   page piled into the wrong one. Use the section number `add_section` returned; do not
+   assume it is the last section.
+3. Navigate to the scene's entry URL, or carry on from where the previous scene ended if
+   it is the same app.
+4. `wait_for_capturer`, then **verify the page actually loaded** with
    `get_capturer_state`. A settled page is not a loaded page. Treat all of these as
-   failures and do **not** capture:
+   failures and do **not** record:
    - Browser errors — "can't reach this page", `ERR_NAME_NOT_RESOLVED`,
      `ERR_CONNECTION_REFUSED`, any DNS or connection error text.
    - HTTP 4xx or 5xx.
    - A redirect to sign-in when signed-in content was expected. The profile's session
      expired — pause using [Pausing and resuming](#pausing-and-resuming-without-losing-the-plan)
      and never capture the sign-in page as a slide.
-4. `set_capture_size_mode` to fixed 1920x1080. Capture at fixed size first; a page can
-   be switched to Responsive afterward, but the reverse requires a recapture.
-
-### Per page, within a scene
-
-1. **Reveal what the beat needs.** On-demand content is only captured if it is already
-   in the page — expand collapsed menus, scroll virtualized lists, open the panel.
-   Use `click_element`, `scroll_view`, `hover_element`.
-2. **Stage the persona** if one was given — `set_element_text` for a display name,
-   `set_element_image` for a logo or avatar. Safe cosmetic edits only. Never operate a
+5. `set_capture_size_mode` to fixed 1920x1080. Fixed first; a page can be switched to
+   Responsive afterward, but the reverse needs a recapture.
+6. **Stage the persona now, before recording starts** — `set_element_text` for a display
+   name, `set_element_image` for a logo or avatar. Cosmetic edits only. Never operate a
    destructive control (delete, send, purchase, permission change) on a live site.
-3. `pause_page_motion` to freeze carousels and CSS animation.
-4. `capture_html_page` → returns the new section and page.
-5. **Place the click hotspot** for the beat that leads to the next page:
-   - Find the target with `list_elements` or `query_dom`. Prefer describing it the way
-     a screen reader would ("the Sign in button") over a brittle CSS selector.
-   - `instantiate_theme_shape` with the theme's default beacon, then `anchor_shape`
-     with `anchorSizing='match'` so it stays aligned as the page reflows.
-   - **Name the beacon after the UI element it highlights** — "Save button", "Settings
-     tab". This is required: screen readers announce the name. Do not include the word
-     "button"; the reader adds it, so "Save button" is announced "Save button button".
-   - Set its click action to advance to the next page.
-   - Target not found → warn, skip the hotspot, keep going, and list it at the end for
-     manual placement. Never abort the build over one missing element.
-6. **Write the talk track:**
-   - `set_text --target page_notes` ← the beat's narration. This is the seller's script.
-   - `set_text --target page_description` ← an accessibility description: what the
-     screen shows, what changed since the previous page, and what to do next. Do not
-     describe colour or pixel positions. Flag these for seller review in the summary —
-     generated descriptions are a starting point, not a finished product.
-7. `render_page` to verify the page looks right.
-8. **Advance the live page**: `click_element` on the same target the hotspot points at,
-   wait, verify, and capture the resulting state as the next page. Repeat from step 1.
+7. `pause_page_motion` to freeze carousels and CSS animation.
+8. `start_build_recording`. It returns `followClicks: true` — that is the mode that chains
+   pages.
+9. **Walk the scene's beats, one click each:**
+   - Find the target with a **narrow** `list_elements` query — pass `query` and
+     `kind: 'clickable'`, and keep `maxResults` small. A broad listing returns hundreds of
+     elements that stay in context and slow down every later step.
+   - `click_element`, then `wait_for_capturer`.
+   - Reveal anything the next beat needs — expand a menu, scroll a list. On-demand content
+     is only captured if it is already on the page.
+   - `get_recording_state` to confirm `pendingChainPageCount` is growing. If it is not, the
+     clicks are not registering — stop and say so rather than recording nothing.
+10. `stop_build_recording`. Every page in the chain is imported automatically. There is no
+    separate capture step.
+
+#### After each scene — reconcile, do not assume
+
+`list_pages` and see what was actually produced.
+
+**The page count will not match the storyboard.** A full page navigation starts a new page
+too, not just a click, so a three-beat scene can produce five pages. This is expected. Map
+the narration onto the pages that exist rather than the pages you planned, and say so in
+the summary if the shape changed materially.
+
+Then, in **one pass over the scene's pages**:
+
+- `get_shapes` on each page. Rename any beacon that came out generically as "Hotspot" —
+  give it the name of the element it sits on. Recording names most beacons from the link
+  text automatically, but not all. Do not include the word "button"; the screen reader adds
+  it, so "Save button" is announced "Save button button".
+- `set_text --target page_notes` ← the beat's narration. This is the seller's script.
+- `set_text --target page_description` ← what the screen shows, what changed since the
+  previous page, and what to do next. No colour, no pixel positions, and do not repeat text
+  that shapes on the page will already announce.
+
+Write all of a scene's notes and descriptions together like this. Interleaving them into
+every page doubles the number of round trips for no benefit.
+
+Do not call `render_page` on each page. It costs a full round trip and an image every time,
+and the Phase 5 self-check already verifies the result.
+
+#### Fallback — the explicit capture loop
+
+If recording is unusable for a scene — it produced no pages, or the surface fights it —
+fall back to capturing pages individually: `capture_html_page`, then `list_elements` /
+`query_dom` to find the target, `instantiate_theme_shape` with the theme's default beacon,
+`anchor_shape` with `anchorSizing='match'`, name it, set its click action to the next page,
+and `get_shapes` to confirm it exists. Then `click_element` to advance and repeat.
+
+This is slower and the beacon step is easy to drop, which is exactly why it is the
+fallback. **A page with no beacon is an unfinished page** — the viewer cannot advance, and
+what you have built is a screenshot with notes attached. If a target genuinely cannot be
+found, warn, keep going, and list that page in the final summary as needing a hotspot
+placed by hand. Never abort the whole build over one element, and never continue silently
+as though the page were complete.
+
+#### Not yet proven
+
+Recording was verified on a content site (Microsoft Learn). It has **not** been confirmed
+on a heavy single-page app such as Outlook or Teams web, where a click changes the view
+without a full navigation. If `pendingChainPageCount` does not rise on such a surface, use
+the fallback loop for that scene and report it.
+
+Also note: beacons created by recording are theme-based with `LockActions: true`, so their
+click actions are owned by the theme and the edit tools will refuse changes to them on the
+instance. The auto-wired navigation is already correct, so leave it alone unless you have a
+specific reason, in which case set `LockActions` to false on that instance first.
 
 ### First page of the demo
 
@@ -289,10 +350,34 @@ elements can be clicked.
 
 ## Phase 5 — Finish
 
+### Self-check first — before you claim anything
+
+Do not describe the build from memory of the calls you made. Read the project back and
+report what is actually there. A tool call that returned without an error is not evidence
+that the thing exists.
+
+1. `list_sections` — every section's page count.
+2. `get_shapes` on every page — the beacons actually present.
+
+Then check for each of these, and state the result plainly:
+
+| Symptom | What it means |
+|---|---|
+| A section with **0 pages** | Captures went to the wrong section. Almost always a missed `set_selection` after `add_section` (Phase 4, per scene, step 2). |
+| Pages piled into a section you did not name — often the default "Section One" | Same cause, seen from the other side. |
+| A page with an **empty `objects` array** | No beacon. The viewer cannot advance past it. |
+| Fewer pages than the approved plan had beats | The build stopped early. Say which scene it reached. |
+
+If any of these are true, **say so in the summary as a defect, not as a completed build.**
+Offer to fix it — move the misfiled pages, or place the missing beacons — rather than
+reporting success and leaving the seller to discover it.
+
+### Then
+
 1. Save. If the Save permission is on, save the project. If it is off, tell the seller
    to press Ctrl+S in Regale.
-2. Summarise honestly:
-   - Sections and pages created.
+2. Summarise honestly, from the self-check above rather than from memory:
+   - Sections and pages created — the counts you just read back, and any empty section.
    - Hotspots placed, and **every** hotspot skipped with the reason.
    - Accessibility descriptions written and awaiting review.
    - Any scene skipped because it needed a desktop app or a URL that was never supplied.
