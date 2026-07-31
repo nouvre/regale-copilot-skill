@@ -81,12 +81,12 @@ Audience: Executive
    - Recommend a focused pilot with measurable outcomes.
 
 Supported commands:
-- edit duration scene <n> <seconds>
-- rename scene <n> "New Title"
-- edit narration scene <n>: "...new text..."
-- add beat scene <n>: <action>
-- remove beat scene <n>: <beat-number>
-- reorder scene <from> <to>
+- edit duration scene N SECONDS
+- rename scene N "New Title"
+- edit narration scene N: "new text"
+- add beat scene N: action
+- remove beat scene N: beat-number
+- reorder scene FROM TO
 - confirm build
 
 Waiting for one command.

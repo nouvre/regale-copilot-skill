@@ -43,18 +43,23 @@ Return only:
 2. Supported inline commands
 3. A final wait state for one user command
 
+**Always print the command list inside a fenced code block.** Chat renders your reply as
+markdown, so angle-bracket placeholders written as bare text are treated as HTML tags
+and silently deleted. Use the plain placeholders shown in the acceptance test (`N`,
+`SECONDS`, `FROM`, `TO`) and keep the whole block fenced.
+
 Do not show raw YAML unless the user explicitly asks for YAML.
 
 If a URL or surface is missing, infer one only when it is a real, publicly reachable vendor-owned page such as a product page on `www.microsoft.com` or `learn.microsoft.com`. Never invent a tenant-specific hostname such as `contoso.sharepoint.com`, `fabrikam.*`, `*.onmicrosoft.com`, or any `*.sharepoint.com` / `*.crm.dynamics.com` host the user has not supplied — those do not resolve, and capture records a browser error page instead of the product. For tenant-specific surfaces, leave the URL empty, mark it `(needs your tenant URL)`, and ask for it at build time. Ask one short clarifying question only if the missing URL blocks the preview.
 
 ## Supported Commands
 
-- `edit duration scene <n> <seconds>`
-- `rename scene <n> "New Title"`
-- `edit narration scene <n>: "...new text..."`
-- `add beat scene <n>: <action>` (optionally `-> <target>`; plain language or a CSS selector)
-- `remove beat scene <n>: <beat-number>`
-- `reorder scene <from> <to>`
+- `edit duration scene N SECONDS`
+- `rename scene N "New Title"`
+- `edit narration scene N: "new text"`
+- `add beat scene N: action` (optionally `-> target`; plain language or a CSS selector)
+- `remove beat scene N: beat-number`
+- `reorder scene FROM TO`
 - `confirm build`
 
 ## Acceptance Test
@@ -90,12 +95,12 @@ Audience: Executive
    - Recommend a focused pilot with measurable outcomes.
 
 Supported commands:
-- edit duration scene <n> <seconds>
-- rename scene <n> "New Title"
-- edit narration scene <n>: "...new text..."
-- add beat scene <n>: <action>
-- remove beat scene <n>: <beat-number>
-- reorder scene <from> <to>
+- edit duration scene N SECONDS
+- rename scene N "New Title"
+- edit narration scene N: "new text"
+- add beat scene N: action
+- remove beat scene N: beat-number
+- reorder scene FROM TO
 - confirm build
 
 Waiting for one command.

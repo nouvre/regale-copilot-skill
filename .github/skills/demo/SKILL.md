@@ -33,6 +33,13 @@ Return only:
 3. Supported inline commands.
 4. A final wait state for one user command.
 
+**Always print the command list inside a fenced code block.** Chat renders your reply as
+markdown, so angle-bracket placeholders written as bare text are treated as HTML tags
+and silently deleted — `edit duration scene <n> <seconds>` reaches the user as
+`edit duration scene`, and they cannot see where the values go. Use the plain
+placeholders shown in the acceptance test (`N`, `SECONDS`, `FROM`, `TO`) and keep the
+whole block fenced.
+
 Do not show raw YAML unless the user explicitly asks for YAML.
 
 Each scene becomes a section in Regale, and each beat becomes a page the viewer clicks through. Write beats as discrete states, not as long summaries.
@@ -52,15 +59,17 @@ Ask one short clarifying question only if the missing URL blocks the preview.
 
 ## Supported Commands
 
-- `edit duration scene <n> <seconds>`
-- `rename scene <n> "New Title"`
-- `edit narration scene <n>: "...new text..."`
-- `add beat scene <n>: <action>` — optionally `-> <target>`, where the target may be
-  plain language ("the Sign in button") or a CSS selector. The build finds the element
+- `edit duration scene N SECONDS`
+- `rename scene N "New Title"`
+- `edit narration scene N: "new text"`
+- `add beat scene N: action` — optionally `-> target`, where the target may be plain
+  language ("the Sign in button") or a CSS selector. The build finds the element
   itself, so the target is a hint, not a requirement.
-- `remove beat scene <n>: <beat-number>`
-- `reorder scene <from> <to>`
+- `remove beat scene N: beat-number`
+- `reorder scene FROM TO`
 - `confirm build`
+
+Accept the angle-bracket form too if a user types it, but never print it.
 
 ## Build Mode
 
@@ -114,12 +123,12 @@ Audience: Executive
    - Recommend a focused pilot with measurable outcomes.
 
 Supported commands:
-- edit duration scene <n> <seconds>
-- rename scene <n> "New Title"
-- edit narration scene <n>: "...new text..."
-- add beat scene <n>: <action>
-- remove beat scene <n>: <beat-number>
-- reorder scene <from> <to>
+- edit duration scene N SECONDS
+- rename scene N "New Title"
+- edit narration scene N: "new text"
+- add beat scene N: action
+- remove beat scene N: beat-number
+- reorder scene FROM TO
 - confirm build
 
 Waiting for one command.

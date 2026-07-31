@@ -23,13 +23,16 @@ Forbidden before `confirm build`:
 
 Supported commands:
 
-- `edit duration scene <n> <seconds>`
-- `rename scene <n> "New Title"`
-- `edit narration scene <n>: "...new text..."`
-- `add beat scene <n>: <action>` (optionally `-> <target>`; plain language or a CSS selector)
-- `remove beat scene <n>: <beat-number>`
-- `reorder scene <from> <to>`
+- `edit duration scene N SECONDS`
+- `rename scene N "New Title"`
+- `edit narration scene N: "new text"`
+- `add beat scene N: action` (optionally `-> target`; plain language or a CSS selector)
+- `remove beat scene N: beat-number`
+- `reorder scene FROM TO`
 - `confirm build`
+
+Print this list to the user inside a fenced code block. Angle-bracket placeholders are
+stripped as HTML tags by the markdown renderer, which is why these use plain words.
 
 When the user types exactly `confirm build`, read `.github/skills/demo/BUILD_PIPELINE.md` and follow it. That file is the single source of truth for the build; do not build from memory. Do not merely restate the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
 

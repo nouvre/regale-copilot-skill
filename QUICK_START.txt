@@ -1,52 +1,127 @@
-#!/usr/bin/env python3
-"""
-QUICK START for non-developers
+QUICK START — Build a Regale demo with GitHub Copilot
+=====================================================
 
-This folder contains everything you need to build interactive product demos in Regale Studio using GitHub Copilot.
+You describe the demo in chat. Copilot drives Regale's built-in browser,
+clicks through the product, and turns each screen into a slide with your
+talk track attached.
 
-Files:
-- README.md                  — setup and overview
-- skill.md                   — the skill's purpose and workflow
-- AGENT_INSTRUCTIONS.md      — what the Copilot agent does (read once to understand the build process)
-- example_demo.yaml          — an example demo definition (inspect this format)
-- parser.py                  — parses Word .docx files (two-column table) into YAML
-- build_orchestrator.py      — prints the sequence of MCP calls (reference / dry-run planning)
-- mcp.json                   — Regale Studio MCP server configuration (place in .vscode/ or your CLI config)
+You do not click through the product yourself. You do not need a URL for
+every screen.
 
-Steps to get started:
 
-1. On your Windows PC, open Regale Studio and create a new project (File → New).
+BEFORE YOU START
+----------------
 
-2. If you have a .docx file with a two-column "What to say / What to show" table, parse it:
-   python parser.py path/to/your_demo.docx -o demo.yaml
-   Then review and edit demo.yaml if you are an advanced user.
+1. Regale Studio is installed and running.
+2. A Regale project is open (File -> New, or open an existing one).
+3. The Copilot assets are installed. From this folder, double-click:
+      install-regale-demo.cmd
+   Then fully restart GitHub Copilot (system tray -> Exit, then reopen).
 
-3. If you're starting fresh, use the chat with Copilot (recommended):
-   - Start your demo with the exact command token on its own line: `/demo Pitch SharePoint to an executive. Keep it short and lead with business value.`
-   - The agent will enter DEFINITION mode and return a compact, structured preview (card/outline). It will list a few short inline-edit commands you can use (examples below).
-   - Supported quick commands (exact syntax):
-     - `edit duration scene <n> <seconds>`
-     - `rename scene <n> "New Title"`
-     - `edit narration scene <n>: "...new text..."`
-     - `add beat scene <n>: <action> -> <selector>`
-     - `remove beat scene <n>: <beat-number>`
-     - `reorder scene <from> <to>`
-     - `confirm build`  (only this exact phrase transitions to BUILD mode)
-   - NOTE: The agent will refuse to call Regale tools or start builds until it receives `confirm build`.
+Full setup instructions: WINDOWS_COPILOT_APP.md
 
-4. After you issue `confirm build`, the agent will:
-   - Check that Regale Studio is open and the HTML Capturer is ready.
-   - Run precondition checks (permissions, open project) and report any blockers.
-   - Navigate to each page, stage your persona (if provided), and capture.
-   - Place interactive click hotspots at the key moments.
-   - Write narration and presenter notes into each slide.
-   - Render pages for verification, then save/publish if permitted.
-   - Report completion (you can then open the demo in Regale Studio).
 
-What the agent needs from you:
-- A Regale Studio project (create one first).
-- The HTML Capturer window open (View → Open Capturer in Regale).
-- (Optional) Enabled permissions for auto-saving / publishing:
-  Regale → AI & Agents → Permissions → toggle "Save project files" and "Publish to the Regale portal".
+BUILD A DEMO
+------------
 
-Questions or issues? Refer to AGENT_INSTRUCTIONS.md for the full workflow.
+1. Open the GitHub Copilot app.
+
+2. Type /agent and pick "Regale Demo".
+
+3. Describe the demo in plain language, for example:
+
+      Pitch SharePoint to an executive. Keep it short and lead with
+      business value.
+
+4. You get a storyboard preview — scenes, timings, narration. Nothing has
+   touched Regale yet.
+
+5. Adjust it with short commands:
+
+      rename scene 2 "Search the intranet"
+      edit duration scene 1 30
+      edit narration scene 3: "Close on faster decisions."
+      add beat scene 2: open the search results
+      remove beat scene 2: 1
+      reorder scene 3 1
+
+6. When it looks right, type exactly:
+
+      confirm build
+
+   That phrase, and only that phrase, starts the build.
+
+
+WHAT HAPPENS DURING THE BUILD
+-----------------------------
+
+- Copilot checks Regale's permissions and asks up front if anything it
+  needs is switched off.
+- It sets up the project title and turns on Presenter View.
+- It opens Regale's browser and navigates to the product.
+- It captures each screen, drops a click hotspot, and writes your
+  narration into the presenter notes.
+- It finishes with a saved project for you to review.
+
+It does NOT publish. Publishing stays your decision — do it from Regale
+when you are happy with the demo.
+
+
+SIGNING IN
+----------
+
+The first time you build against a product, Copilot pauses and asks you to
+sign in inside Regale's browser window. Sign in there once, including any
+MFA prompt, and tell it you are done. It picks up exactly where it stopped
+— nothing you have already built is lost.
+
+That sign-in is remembered, so later builds should not stop.
+
+Copilot never types your password and never reads a saved one.
+
+Some sites sign you out between sessions regardless. If it asks again, just
+sign in again — that is the site's behaviour, not a fault.
+
+
+IF SOMETHING LOOKS WRONG
+------------------------
+
+- It answers with a normal pitch instead of a storyboard
+     -> "Regale Demo" was not selected. Pick it under /agent and retry.
+
+- It starts building without mentioning permissions or sign-in
+     -> It did not read the build instructions. Ask it:
+        "did you read BUILD_PIPELINE.md?"
+        If that file is missing, re-run install-regale-demo.cmd
+
+- It says the Regale tools are unavailable
+     -> Make sure Regale Studio is running with a project open, then
+        restart Copilot fully (tray -> Exit).
+
+- It asks for a URL you do not have
+     -> Give it your real tenant URL, or pick the public product page.
+        It will not guess one, because made-up addresses capture an error
+        page instead of the product.
+
+More troubleshooting: WINDOWS_COPILOT_APP.md
+
+
+THE RESULT
+----------
+
+A working draft, not a finished demo. Expect to trim a few slides, nudge a
+hotspot, and tighten the narration in Regale before you present it.
+
+
+FOR ADVANCED USERS
+------------------
+
+- examples/example_demo.yaml   — the demo-definition format
+- parser.py                    — turns a Word .docx with a two-column
+                                 "What to say / What to show" table into
+                                 that format
+- .mcp.json                    — Regale MCP server config snippet
+- skill.md                     — what this does and how it maps onto
+                                 Regale's project model
+- .github/skills/demo/BUILD_PIPELINE.md
+                               — the build instructions Copilot follows
