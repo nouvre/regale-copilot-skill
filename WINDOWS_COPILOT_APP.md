@@ -35,7 +35,11 @@ This installs:
 - `Regale Demo` as a personal Copilot custom agent in `$HOME\.copilot\agents`.
 - `demo` as a personal Copilot skill in `$HOME\.copilot\skills`, including
   `BUILD_PIPELINE.md` — the build instructions the agent reads after `confirm build`.
-- The Regale Studio UAT MCP server in `$HOME\.copilot\mcp-config.json`.
+- The Regale Studio UAT MCP server in `$HOME\.copilot\mcp-config.json`, registering the
+  ~50 Regale tools a demo build uses rather than all ~138. The full catalogue costs about
+  55,000 tokens of context on every model request, and a build makes 60–100 of those, so
+  trimming it makes every step faster. If a build ever stops because a tool was not
+  registered, rerun the installer with `-AllTools` and tell us which one was missing.
 
 If Regale Studio is installed somewhere else, pass the bridge path:
 
@@ -112,6 +116,35 @@ Only then does the agent call Regale MCP tools.
 
 ## What to Expect After `confirm build`
 
+### How long, and why it looks stuck
+
+A build is roughly **20 Regale calls per scene**, and each one is a separate round trip to
+the model. A three-scene demo is 60–100 calls: usually **10–15 minutes**, sometimes three
+times that when the model service is busy. Thirty to sixty seconds of silence between steps
+is normal, and it is not a sign anything is wrong.
+
+Note that this has nothing to do with the length of the finished demo. An 85-second video
+is not an 85-second build.
+
+The agent tells you its estimate before it starts and reports at each scene boundary
+("scene 2 of 4 recorded, 5 pages"), so you can tell progress from a hang.
+
+### Turn on "allow all tools" first
+
+Copilot asks permission the first time it uses each new tool. A build reaches for about
+twenty different Regale tools, spread across the whole run — so if you leave approvals on,
+prompts arrive at unpredictable moments over fifteen minutes, and **the build stops dead at
+each one** until you come back to the window.
+
+Turn on allow-all for the session before you type `confirm build`. The agent will remind
+you. Two caveats:
+
+- It is **per session**. If you resume a chat later to finish a build, turn it on again.
+- Some enterprise-managed GitHub accounts block it. If the toggle is unavailable, keep the
+  Copilot window in view during the build and answer prompts as they come.
+
+### The rest
+
 - It reads `BUILD_PIPELINE.md` and says so.
 - It checks Regale permissions and asks you **up front**, in one message, to enable
   anything missing. It should not fail halfway through for a permission.
@@ -128,6 +161,12 @@ Only then does the agent call Regale MCP tools.
 
 The result is a working draft. Expect to trim slides, nudge a hotspot, and tighten
 narration before presenting.
+
+**Page descriptions are not written by default.** These are the screen reader texts, and
+they cost an extra round trip per page — a fifth of the build — on pages you are about to
+trim. The agent offers the pass at the end; say "write descriptions" once the draft is the
+shape you want. Page 1 is described during the build regardless. Ask for descriptions up
+front if you need a fully accessible deliverable and can accept the extra time.
 
 ### Permissions
 
@@ -170,5 +209,12 @@ the desktop ones need you.
   never reached Regale Studio. Restart Copilot and check the MCP config above.
 - **It asks you to sign in again on a later build** — usually the site stores its
   sign-in per session. Sign in and continue; the agent resumes where it paused.
+- **The build seems to have stopped** — check for an unanswered tool-approval prompt
+  first; that is the usual cause, and it waits indefinitely. Otherwise, long gaps are
+  expected (see [How long](#how-long-and-why-it-looks-stuck)). Turn on allow-all to avoid
+  it entirely.
+- **"That tool isn't available"** mid-build — the tool is outside the installed subset.
+  Rerun `scripts\install-copilot-user-assets.ps1 -AllTools`, restart Copilot, and report
+  which tool it was so it can be added to the default list.
 - **The MCP bridge cannot start** — verify the path to `regale-mcp-bridge.exe` next to
   `RegaleStudio.exe`.

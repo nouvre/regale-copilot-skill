@@ -30,6 +30,73 @@ unless a Regale capture tool actually succeeded.
 
 ---
 
+## Phase 0 — Say what this costs, before you start
+
+A build is roughly **20 tool calls per scene**, so a three-scene demo is 60–100 calls,
+each one a separate model round trip. On a good day that is 10–15 minutes. When the
+model service is slow it can be three times that, and there is nothing this pipeline can
+do about it.
+
+Sellers read silence as a hang and walk away from the window. Your **first message after
+`confirm build`**, before any tool call, has to prevent that.
+
+### The estimate is the first thing you write
+
+Open with it. Not a heading, not a preamble — the estimate itself, as the opening
+sentence:
+
+> scene count · rough call count · rough minutes · long gaps are normal
+
+This is the half that is easy to lose, because the setup asks below feel more actionable
+and they arrive in a tidy numbered list. They are not more important. A seller who
+approves two toggles and then watches nothing happen for eleven minutes is exactly the
+problem this phase exists to solve.
+
+**A first message that opens "Two setup steps..." has failed this phase.** So has any
+message where a reader cannot answer "how long will this take?" without asking.
+
+### Then the setup asks
+
+Copilot prompts on first use of each new tool name, and this build reaches for about
+twenty across four phases. Left alone, approval prompts arrive at random points over
+fifteen minutes, and each one silently parks the build until the seller happens to look.
+So ask once, up front, folded together with the Phase 1 permission check.
+
+### One message, in this order
+
+```text
+Building 3 scenes. That's around 70 Regale calls, usually 10-15 minutes, and it can be
+slower when the model service is busy. Long pauses between steps are normal - if it goes
+quiet for a minute, it's working, not stuck.
+
+Before I start, two toggles so it doesn't stop halfway:
+
+1. Turn on "allow all tools" for this session in Copilot. Otherwise I'll ask you to
+   approve each new Regale tool as I first reach for it, and I stop dead until you
+   answer. If you'd rather approve them one by one, that's fine - I've front-loaded
+   most of them, so expect a cluster of prompts early and a few more during the build.
+2. In Regale Studio -> Home ribbon -> AI & Agents -> Permissions, confirm Read project
+   content, Edit project content, and Browser automation are on. Save project files is
+   optional; without it you press Ctrl+S at the end.
+
+Tell me when both are done and I'll start.
+```
+
+The opening paragraph is **not optional garnish** — it is the phase. The numbered list is
+the cheap part. Scale the numbers to the actual plan: count the scenes you are about to
+build, reckon roughly twenty calls each, and give a range in minutes rather than a promise.
+
+Two caveats worth knowing, though you do not need to recite them:
+
+- Allow-all is **per session**. Resuming a chat later resets it, so a build picked up
+  after a pause needs it turned on again.
+- Some enterprise-managed GitHub accounts block allow-all entirely. If the seller says
+  the toggle is unavailable, do not fight it — warn them that approvals will arrive
+  throughout and to keep the window in view.
+
+Report progress at each scene boundary — "scene 2 of 4 recorded, 5 pages" — so the
+silence between them is legible.
+
 ## Phase 1 — Preconditions
 
 1. Confirm `regale_studio_uat-*` tools are visible. If not, stop:
@@ -49,9 +116,10 @@ unless a Regale capture tool actually succeeded.
    | Save project files | Saving at the end | Not a blocker. Warn once now, and tell the seller to press Ctrl+S themselves at the end. |
    | Publish | Not used in v1 | Ignore. |
 
-   Ask for any missing permission **up front**, in one message, naming the exact
-   location: Regale Studio → Home ribbon → AI & Agents → Permissions. Do not start
-   capturing and fail halfway.
+   Phase 0 already asked for these. This step verifies rather than re-asks. If something
+   is still off, say which one and where — Regale Studio → Home ribbon → AI & Agents →
+   Permissions — in **one** message. Do not start capturing and fail halfway, and do not
+   drip permission requests out one at a time.
 
    Never call `read_capture_credentials`. It is off by default, and it would put
    plaintext passwords into the chat transcript. The seller signs in themselves.
@@ -59,6 +127,49 @@ unless a Regale capture tool actually succeeded.
 3. `get_open_project`.
    - A project is open → use it.
    - No project → create one from the branded template (Phase 2).
+
+### The opening sweep — cluster the approvals
+
+Copilot asks permission the **first** time it sees each tool name, so the timing of those
+prompts is decided by the order you first reach for things. Left to fall out naturally,
+the first use of `list_capture_profiles` lands in Phase 3 and `get_shapes` in Phase 4 —
+which is how a seller ends up approving a tool eleven minutes in, having long since
+switched windows.
+
+You cannot reduce the number of approvals. You can decide **when** they arrive. So do all
+the read-only orientation now, in one burst, while the seller is still watching:
+
+| Call | What it tells you |
+|---|---|
+| `get_agent_permissions` | above |
+| `get_open_project` | above |
+| `list_sections` | whether the project already has structure you must not clobber |
+| `list_pages` | the same, at page level; also the baseline count Phase 4 reconciles against |
+| `get_theme` | the theme's default beacon shape, which the fallback loop needs |
+| `list_capture_profiles` | whether a profile for this environment already exists (Phase 3) |
+| `get_capturer_state` | whether the capturer is already open and where it is pointed |
+
+That is about seven prompts in the first thirty seconds, then a long quiet stretch instead
+of the reverse.
+
+**Every call here has to earn its place.** Do not call a tool purely to get it approved —
+you are ordering real work, not manufacturing it. Each row above returns something the
+build genuinely uses, and if a project is not open yet, skip the project-shaped calls
+rather than firing them at nothing.
+
+Tell the seller what is about to happen, so the burst reads as progress:
+
+```text
+Checking the project and capture setup - about seven approval prompts in the next few
+moments. I'm getting them out of the way now so the build itself runs quietly.
+```
+
+Phase 3 brings a second, smaller cluster when the capturer opens
+(`open_html_capturer`, `navigate_capturer`, `wait_for_capturer`). Say the same thing
+again, briefly. Phase 4's writes — `add_section`, `set_selection`, `set_text`,
+`click_element`, the recording tools — cannot be front-loaded, because inventing writes
+to pre-approve them would put junk in the seller's project. Those few will still arrive
+mid-build, and Phase 0 has already warned that some will.
 
 ## Phase 2 — Project and theme
 
@@ -87,7 +198,8 @@ Then set project properties with `update_properties --target project`:
 A capture profile is an isolated, persistent browser identity. It is what lets a later
 build run unattended: the seller signs in once, and the profile stays signed in.
 
-1. `list_capture_profiles`.
+1. You already called `list_capture_profiles` in the opening sweep — use that result
+   rather than calling it again.
 2. A profile for this demo environment exists → `switch_capture_profile` to it.
 3. It does not exist → `create_capture_profile`, switch to it, then:
    - `open_html_capturer` and `navigate_capturer` to the product's sign-in page.
@@ -269,12 +381,19 @@ page. The agent never called `instantiate_theme_shape` or `anchor_shape`.
    - A redirect to sign-in when signed-in content was expected. The profile's session
      expired — pause using [Pausing and resuming](#pausing-and-resuming-without-losing-the-plan)
      and never capture the sign-in page as a slide.
-5. `set_capture_size_mode` to fixed 1920x1080. Fixed first; a page can be switched to
+5. Capture size — **usually nothing to do.** The capturer already defaults to fixed
+   1920x1080, and the emulation is live and persists across navigations, so calling
+   `set_capture_size_mode` every scene sets it to what it already was. Call it only to
+   choose a *different* resolution, or to switch a scene to Responsive — and then once,
+   not per scene. Keep Fixed unless you have a reason: a fixed page can be upgraded to
    Responsive afterward, but the reverse needs a recapture.
 6. **Stage the persona now, before recording starts** — `set_element_text` for a display
    name, `set_element_image` for a logo or avatar. Cosmetic edits only. Never operate a
    destructive control (delete, send, purchase, permission change) on a live site.
-7. `pause_page_motion` to freeze carousels and CSS animation.
+7. `pause_page_motion` to freeze carousels and CSS animation. This one **is** per
+   navigation — a page load resets its own animations — but skip it when the scene
+   carries on from where the previous scene ended without a full navigation, and skip it
+   on surfaces with nothing moving.
 8. `start_build_recording`. It returns `followClicks: true` — that is the mode that chains
    pages.
 9. **Walk the scene's beats, one click each:**
@@ -284,9 +403,14 @@ page. The agent never called `instantiate_theme_shape` or `anchor_shape`.
    - `click_element`, then `wait_for_capturer`.
    - Reveal anything the next beat needs — expand a menu, scroll a list. On-demand content
      is only captured if it is already on the page.
-   - `get_recording_state` to confirm `pendingChainPageCount` is growing. If it is not, the
-     clicks are not registering — stop and say so rather than recording nothing.
-10. `stop_build_recording`. Every page in the chain is imported automatically. There is no
+   - Do **not** call `get_recording_state` between every click. It is a health check, not a
+     step, and at two calls per beat it is one of the largest avoidable costs in the build.
+10. `get_recording_state` **once**, after the last beat and before stopping. Confirm
+    `pendingChainPageCount` has grown by roughly one per click. If it is zero or barely
+    moved, the clicks did not register — stop and say so rather than recording nothing.
+    Check it earlier only if you have specific reason to suspect a surface, in which case
+    check after the *first* click and then leave it alone.
+11. `stop_build_recording`. Every page in the chain is imported automatically. There is no
     separate capture step.
 
 #### After each scene — reconcile, do not assume
@@ -305,15 +429,49 @@ Then, in **one pass over the scene's pages**:
   text automatically, but not all. Do not include the word "button"; the screen reader adds
   it, so "Save button" is announced "Save button button".
 - `set_text --target page_notes` ← the beat's narration. This is the seller's script.
-- `set_text --target page_description` ← what the screen shows, what changed since the
-  previous page, and what to do next. No colour, no pixel positions, and do not repeat text
-  that shapes on the page will already announce.
 
-Write all of a scene's notes and descriptions together like this. Interleaving them into
-every page doubles the number of round trips for no benefit.
+**Keep a running tally as you go**, from what these calls actually returned — not from
+what you intended:
+
+```text
+Section 2 "Search the intranet": 5 pages; beacons present on 1,2,3,5; page 4 none.
+```
+
+Phase 5 reports from this tally, so it does not have to read every page a second time.
+Record it as you read, and record the truth: a page with an empty `objects` array goes in
+as "none", not as an assumption that recording handled it.
+
+Write all of a scene's notes together like this. Interleaving them into every page doubles
+the number of round trips for no benefit.
 
 Do not call `render_page` on each page. It costs a full round trip and an image every time,
 and the Phase 5 self-check already verifies the result.
+
+#### Page descriptions — offer them, don't assume them
+
+`set_text --target page_description` is the accessibility text: what the screen shows, what
+changed since the previous page, what to do next. No colour, no pixel positions, and do not
+repeat text that shapes on the page will already announce.
+
+It is also **one extra round trip per page** — on a 20-page draft, a fifth of the whole
+build. And the output of this pipeline is a draft the seller is about to trim, so some of
+those pages will not survive to be presented.
+
+So do not write them inline during the capture loop. Instead, at the end of Phase 5, offer:
+
+```text
+I haven't written the page descriptions yet — that's the screen reader text, one pass over
+all 18 pages, a few more minutes. Worth doing once you've trimmed the draft, so we're not
+describing pages you're about to delete. Say "write descriptions" whenever you're ready.
+```
+
+Two exceptions that get written inline, because they are not disposable:
+
+- **Page 1 of the demo**, per [First page of the demo](#first-page-of-the-demo).
+- Any page the seller has already said is going in the final cut.
+
+If the seller asks for a fully accessible deliverable up front, write descriptions inline
+and tell them it roughly doubles the per-page cost.
 
 #### Fallback — the explicit capture loop
 
@@ -352,12 +510,24 @@ elements can be clicked.
 
 ### Self-check first — before you claim anything
 
-Do not describe the build from memory of the calls you made. Read the project back and
-report what is actually there. A tool call that returned without an error is not evidence
-that the thing exists.
+Do not describe the build from memory of the calls you made. Report what tool results
+actually showed. A tool call that returned without an error is not evidence that the thing
+exists.
 
-1. `list_sections` — every section's page count.
-2. `get_shapes` on every page — the beacons actually present.
+1. `list_sections` — every section's page count. One call. This is the authoritative
+   check, and it is the one that catches the `set_selection` failure below.
+2. **Beacons: use the per-scene tally from Phase 4**, not a fresh sweep. You already called
+   `get_shapes` on every page during the reconcile pass, and nothing since then touched
+   shapes — `set_text` writes notes, not objects. Re-reading every page here is a second
+   full pass over the project for information you already hold, and on a 20-page draft that
+   is 20 round trips to learn nothing new.
+
+   Re-read only where the tally is genuinely unreliable: pages you renamed a beacon on and
+   did not read back, pages the fallback loop built, and any page whose `list_sections`
+   count disagrees with what you recorded.
+
+If Phase 4's reconcile pass was skipped or interrupted for a scene, there is no tally for
+it — read that scene's pages now. Do not report on a scene you never read.
 
 Then check for each of these, and state the result plainly:
 
@@ -379,10 +549,12 @@ reporting success and leaving the seller to discover it.
 2. Summarise honestly, from the self-check above rather than from memory:
    - Sections and pages created — the counts you just read back, and any empty section.
    - Hotspots placed, and **every** hotspot skipped with the reason.
-   - Accessibility descriptions written and awaiting review.
    - Any scene skipped because it needed a desktop app or a URL that was never supplied.
 3. State that this is a working draft the seller should review in Regale before
    presenting.
+4. Offer the page-description pass, per
+   [Page descriptions](#page-descriptions--offer-them-dont-assume-them). Say plainly that
+   it has not been done yet — do not let it read as finished accessibility work.
 
 Do not publish. Do not offer to publish.
 

@@ -4,7 +4,66 @@
       "type": "stdio",
       "command": "C:\\Program Files\\Regale Studio UAT\\regale-mcp-bridge.exe",
       "args": [],
-      "tools": ["*"]
+      "tools": [
+        "get_agent_permissions",
+        "get_open_project",
+        "open_project",
+        "new_project",
+        "save_project",
+        "update_properties",
+        "list_sections",
+        "list_pages",
+        "get_page",
+        "add_section",
+        "set_selection",
+        "set_text",
+        "get_theme",
+
+        "list_capture_profiles",
+        "create_capture_profile",
+        "switch_capture_profile",
+
+        "open_html_capturer",
+        "close_html_capturer",
+        "navigate_capturer",
+        "wait_for_capturer",
+        "get_capturer_state",
+        "set_capture_size_mode",
+        "pause_page_motion",
+        "capture_view",
+        "diagnose_page",
+
+        "list_elements",
+        "get_element",
+        "query_dom",
+        "click_element",
+        "click_at_coordinate",
+        "hover_element",
+        "scroll_view",
+        "press_keys",
+        "type_text",
+        "set_input_value",
+        "set_element_text",
+        "set_element_image",
+
+        "start_build_recording",
+        "stop_build_recording",
+        "get_recording_state",
+
+        "capture_html_page",
+        "get_shapes",
+        "instantiate_theme_shape",
+        "anchor_shape",
+        "render_page",
+
+        "list_capture_targets",
+        "set_capture_target",
+        "set_capture_mode",
+        "start_capture",
+        "end_capture",
+        "set_studio_window",
+        "get_studio_window"
+      ]
     }
   }
 }
