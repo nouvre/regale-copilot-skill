@@ -94,8 +94,13 @@ Two caveats worth knowing, though you do not need to recite them:
   the toggle is unavailable, do not fight it — warn them that approvals will arrive
   throughout and to keep the window in view.
 
-Report progress at each scene boundary — "scene 2 of 4 recorded, 5 pages" — so the
-silence between them is legible.
+Report progress at each scene boundary — "scene 2 of 4 recorded, 5 pages, beacons on all
+5" — so the silence between them is legible. Report the beacons from the audit, not from
+the fact that recording was supposed to place them.
+
+If the canary check in Phase 4 finds recording is not placing beacons on this surface, the
+build switches to placing them by hand and gets longer. Say so when it happens and give a
+revised range, rather than letting the original estimate quietly expire.
 
 ## Phase 1 — Preconditions
 
@@ -188,10 +193,45 @@ ships as a **template `.rglx` project** that already carries it.
 Then set project properties with `update_properties --target project`:
 
 - `title` — the real demo title. No dates, version numbers, or initials; a screen
-  reader reads this first.
+  reader reads this first. **Leaving it as `New Project` is an export warning the seller
+  hits later**, so this is not cosmetic — set it before you capture anything and confirm
+  the write with the `get_open_project` you make in Phase 5.
 - `language` — the language of the demo text.
 - `allowPresenterView = true` — **required.** Without it the presenter notes this
   pipeline writes are unreachable in the player.
+
+### The default section is a trap
+
+`new_project` creates a project that already has one empty section, usually **"Section
+One"**. Phase 4 then calls `add_section` per scene and captures into those, and the default
+is left behind with zero pages.
+
+Regale's Export Validation treats an empty section as an **Error**, not a warning:
+*"This Section has no visible Pages. Please add a Page or unselect this Section."* So a
+build that looks finished stops the seller at the export dialog with a defect they did not
+cause and cannot interpret.
+
+**Reuse it for scene 1.** Do not add a section for scene 1 and leave the default sitting
+next to it:
+
+1. `update_properties --target section 1` to set `Title` to scene 1's name.
+2. `set_selection` to section 1.
+3. Capture scene 1 into it. Scene 2 onward proceed normally with `add_section`.
+
+Only reuse a section that is **empty and default-named**. The opening sweep's
+`list_sections` already tells you both — a section with pages is the seller's or the
+template's, and repurposing it renames their work. If the project came from a branded
+template that ships real sections, leave every one of them alone and add your own.
+
+**Removal is the fallback, not the default.** `remove_section` is destructive, and the
+index it takes has *moved*: every `add_section` renumbers the sections after it. An agent
+that removes "section 1" from a stale mental map deletes a scene it already captured. So
+reach for it only when reuse was not possible — a stray empty section found at Phase 5 —
+and re-read `list_sections` immediately before, so the number you pass came from the
+current state rather than from memory.
+
+Never remove the default *before* the real sections exist. It is the only section in the
+project at that point, and a project needs one.
 
 ## Phase 3 — Capture profile and sign-in
 
@@ -354,22 +394,31 @@ Rules carried over and still binding:
 
 While the capturer is recording, every click you make creates the next page *and* drops a
 themed beacon on the element you clicked, already named after it and already wired to
-advance. Regale does the beacon work — you cannot forget it, and it is far faster than
-placing hotspots by hand.
+advance. When it works it is far faster than placing hotspots by hand.
 
-This was verified against a running Studio: two agent clicks produced four pages, each
-with a correctly anchored, correctly named beacon whose click action pointed at the next
-page. The agent never called `instantiate_theme_shape` or `anchor_shape`.
+This was verified against a running Studio on a content site: two agent clicks produced four
+pages, each with a correctly anchored, correctly named beacon whose click action pointed at
+the next page. The agent never called `instantiate_theme_shape` or `anchor_shape`.
+
+**It does not always work, and it fails silently.** On a single-page app the clicks can
+register as neither pages nor beacons while every tool call still returns success — see
+[Where recording is known to fail](#where-recording-is-known-to-fail). So recording is a
+shortcut, not a guarantee: it does not remove the obligation to check that the beacons
+exist, which is why [the audit](#beacon-audit-and-repair--every-scene-before-you-move-on)
+is not optional.
 
 #### Per scene
 
-1. `add_section` named after the scene. Section names are announced by screen readers on
-   every page load, so make them meaningful.
-2. **`set_selection` to the section you just created.** Not optional. Captured pages land
-   in whichever section is *currently selected*, and `add_section` does **not** select the
-   section it creates. Skip this and you get correctly-named empty sections with every
-   page piled into the wrong one. Use the section number `add_section` returned; do not
-   assume it is the last section.
+1. Get a section for the scene. Section names are announced by screen readers on every page
+   load, so make them meaningful either way.
+   - **Scene 1, on a project with one empty default section** — rename that one instead of
+     adding to it, per [The default section is a trap](#the-default-section-is-a-trap).
+   - **Every other scene** — `add_section` named after the scene.
+2. **`set_selection` to that section.** Not optional. Captured pages land in whichever
+   section is *currently selected*, and `add_section` does **not** select the section it
+   creates — nor does renaming one. Skip this and you get correctly-named empty sections
+   with every page piled into the wrong one. Use the section number `add_section` returned;
+   do not assume it is the last section.
 3. Navigate to the scene's entry URL, or carry on from where the previous scene ended if
    it is the same app.
 4. `wait_for_capturer`, then **verify the page actually loaded** with
@@ -441,11 +490,86 @@ Phase 5 reports from this tally, so it does not have to read every page a second
 Record it as you read, and record the truth: a page with an empty `objects` array goes in
 as "none", not as an assumption that recording handled it.
 
+**A tally entry you did not read is a fabrication.** Recording is *supposed* to place a
+beacon on every click, and that expectation is strong enough to write itself into the
+tally as though it were an observation. It has already happened in the field: a build
+reported "2 pages, with a beacon on page 1" to a seller whose page 1 had no shapes on it
+at all. Every number in that line comes from a `get_shapes` result in this session or it
+does not go in the line.
+
 Write all of a scene's notes together like this. Interleaving them into every page doubles
 the number of round trips for no benefit.
 
 Do not call `render_page` on each page. It costs a full round trip and an image every time,
-and the Phase 5 self-check already verifies the result.
+and `get_shapes` already tells you what is on the page.
+
+#### Beacon audit and repair — every scene, before you move on
+
+The `get_shapes` pass above is also the audit. Do not schedule a second sweep; decide the
+verdict as each result comes back.
+
+**A page passes only if its `objects` array contains a shape that advances the viewer** — a
+beacon or button with a click action pointing at the next page. Anything less is a fail:
+
+| What came back | Verdict |
+|---|---|
+| Empty `objects` array | **Fail.** No beacon. |
+| Only layer shapes | **Fail.** Layers are baked into the exported image — unclickable, untabbable, never announced. |
+| An object with no click action, or one that does not advance | **Fail.** A dead beacon looks right in the editor and traps the viewer at runtime. |
+| An advancing object | Pass. Rename it if it came out as "Hotspot". |
+
+Exactly one page in the whole project is exempt: the **final page of the final scene**,
+which has nowhere to advance to. A scene's own last page is *not* exempt — it advances into
+the next scene's first page, and a viewer stranded at the end of section 1 has the same
+broken demo as one stranded on page 2. Since you audit per scene, treat every page as
+needing a beacon and revisit only the true last page once the build is complete.
+
+**Repair every failing page now**, in the same pass, while you still know what the scene
+was clicking:
+
+1. Find the element the beat clicked. `query_dom` and `list_elements` both work against the
+   captured page in the editor, not just the live capturer — so a page captured minutes ago
+   is still queryable. Use the beat's target as the query.
+2. `instantiate_theme_shape` with the theme's default beacon — you read the theme in the
+   opening sweep, so use that shape id rather than calling `get_theme` again.
+3. `anchor_shape` with `anchorSizing='match'` so it tracks the element rather than sitting
+   at fixed coordinates.
+4. Name it after the element it sits on. **Not** the word "button" — the screen reader adds
+   the role, so "Save button" is announced "Save button button".
+5. Set its click action to the next page.
+6. `get_shapes` on that page again and confirm the object is there. This is the one re-read
+   worth its round trip: a repair you did not verify is the same claim that caused the
+   repair.
+
+Then update the tally from the re-read, and count the repair in the totals so the summary
+distinguishes beacons recording placed from beacons you had to add.
+
+If the element genuinely cannot be found — the click was on something the DOM no longer
+exposes, or the page is an image page with no DOM — do not force it. Leave the page, name
+it in the final summary as needing a hotspot placed by hand, and keep going. Never abort
+the build over one element.
+
+#### The first scene is a canary — check it before building the rest
+
+Run the audit on scene 1 and read the result **before starting scene 2**.
+
+If scene 1 produced **no beacons at all**, recording is not placing them on this surface.
+That is a property of the surface, not of that one scene, so building three more scenes the
+same way produces three more scenes to repair. Stop and say so:
+
+```text
+Scene 1 recorded 4 pages but Regale placed no beacons on any of them - I've read the
+shapes back and they're empty. Recording isn't dropping hotspots on this surface, so I'm
+switching to placing them myself for the rest of the build. It's slower, maybe another
+few minutes, and the result is the same.
+```
+
+Then use the [fallback loop](#fallback--the-explicit-capture-loop) for the remaining
+scenes, and repair scene 1's pages before moving on.
+
+The same reasoning applies to pages: if `list_sections` shows sections with 0 or 1 pages
+where the plan had several beats, the clicks are not chaining either. Do not keep going and
+discover it at the end — that is the failure this canary exists to catch.
 
 #### Page descriptions — offer them, don't assume them
 
@@ -488,12 +612,20 @@ found, warn, keep going, and list that page in the final summary as needing a ho
 placed by hand. Never abort the whole build over one element, and never continue silently
 as though the page were complete.
 
-#### Not yet proven
+#### Where recording is known to fail
 
-Recording was verified on a content site (Microsoft Learn). It has **not** been confirmed
-on a heavy single-page app such as Outlook or Teams web, where a click changes the view
-without a full navigation. If `pendingChainPageCount` does not rise on such a surface, use
-the fallback loop for that scene and report it.
+Recording was verified on a content site (Microsoft Learn): two agent clicks produced four
+pages, each with a correctly anchored and correctly named beacon.
+
+**It has been seen to fail on Microsoft 365 Copilot chat.** A four-scene build there
+finished with 4 sections, 2 pages, and no beacons on either — the clicks neither chained
+pages nor dropped hotspots. This is the heavy single-page app case: a click changes the
+view without a full navigation, and recording appears to have nothing to hook. Assume the
+same of Outlook web, Teams web, and anything else that renders a whole app in one document.
+
+On those surfaces, expect to place beacons yourself. The canary check above is what keeps
+that from costing a whole build, and `pendingChainPageCount` staying flat after the first
+click is the earliest signal of it.
 
 Also note: beacons created by recording are theme-based with `LockActions: true`, so their
 click actions are owned by the theme and the edit tools will refuse changes to them on the
@@ -516,18 +648,24 @@ exists.
 
 1. `list_sections` — every section's page count. One call. This is the authoritative
    check, and it is the one that catches the `set_selection` failure below.
-2. **Beacons: use the per-scene tally from Phase 4**, not a fresh sweep. You already called
-   `get_shapes` on every page during the reconcile pass, and nothing since then touched
-   shapes — `set_text` writes notes, not objects. Re-reading every page here is a second
-   full pass over the project for information you already hold, and on a 20-page draft that
-   is 20 round trips to learn nothing new.
+2. **Beacons: report the Phase 4 audit**, not a fresh sweep. Every page was read with
+   `get_shapes` during the reconcile pass, every failing page was repaired and re-read
+   there, and nothing since has touched shapes — `set_text` writes notes, not objects. A
+   second full pass over a 20-page draft is 20 round trips to learn what you already hold.
 
-   Re-read only where the tally is genuinely unreliable: pages you renamed a beacon on and
-   did not read back, pages the fallback loop built, and any page whose `list_sections`
-   count disagrees with what you recorded.
+   The saving depends on the audit having actually run. Re-read now where it did not:
+   pages you renamed a beacon on and did not read back, pages the fallback loop built, any
+   page whose `list_sections` count disagrees with what you recorded, and **any scene whose
+   audit you cannot point to a `get_shapes` result for**. Uncertainty about whether you
+   read a page is itself the answer — read it.
 
-If Phase 4's reconcile pass was skipped or interrupted for a scene, there is no tally for
+If Phase 4's reconcile pass was skipped or interrupted for a scene, there is no audit for
 it — read that scene's pages now. Do not report on a scene you never read.
+
+**Do not state a beacon count you cannot trace to a tool result.** "With a beacon on page
+1" is a claim about the project, and the seller checks it by opening the Shapes tab. If
+the audit says a page has none and could not be repaired, the summary says that page has
+none.
 
 Then check for each of these, and state the result plainly:
 
@@ -535,12 +673,43 @@ Then check for each of these, and state the result plainly:
 |---|---|
 | A section with **0 pages** | Captures went to the wrong section. Almost always a missed `set_selection` after `add_section` (Phase 4, per scene, step 2). |
 | Pages piled into a section you did not name — often the default "Section One" | Same cause, seen from the other side. |
-| A page with an **empty `objects` array** | No beacon. The viewer cannot advance past it. |
+| A page with an **empty `objects` array** | No beacon. The viewer cannot advance past it. Phase 4 should already have repaired this — if one reaches here, repair it now. |
+| Beacons on no page in the project | Recording placed none and the canary check did not fire. Every page needs one placed by hand; say so before the seller finds out. |
 | Fewer pages than the approved plan had beats | The build stopped early. Say which scene it reached. |
 
 If any of these are true, **say so in the summary as a defect, not as a completed build.**
-Offer to fix it — move the misfiled pages, or place the missing beacons — rather than
-reporting success and leaving the seller to discover it.
+Fix what is fixable first — move the misfiled pages, place the missing beacons — and report
+the rest rather than leaving the seller to discover it.
+
+### Export readiness — clear Regale's own validator before you hand over
+
+Regale runs an Export Validation pass when the seller clicks Export, and it blocks on
+things this pipeline is supposed to have prevented. The seller meets them minutes after
+you said the build was finished, in a dialog that does not explain which of them matter.
+
+You already hold everything needed to pre-empt it. No extra calls:
+
+| Regale reports | Read it from | Fix before handing over |
+|---|---|---|
+| Error — *"This Section has no visible Pages"* | `list_sections`, any section with `pageCount` 0 | `remove_section`, or move pages into it if captures went astray. Usually the leftover default section — see [The default section is a trap](#the-default-section-is-a-trap). |
+| The same Error on a section that *has* pages | Sections and pages both carry `IsHidden`. "Visible" means not hidden, so a section whose every page is hidden reads as empty to the validator while `list_sections` still reports a page count. | Unhide the pages, or hide the whole section — Regale's own suggested fix, *"unselect this Section"*, is `IsHidden = true` on the section. Nothing in this pipeline sets `IsHidden`, so if you meet this, someone hid them by hand: ask before changing it. |
+| Warning — *"The Project Title is still the default value: 'New Project'"* | `get_open_project`, `title` | `update_properties --target project`. Phase 2 should have set it; if it is still the default, the write never landed. |
+
+Fix both silently — they are your defects, not the seller's decisions, and neither needs
+asking. Then say the project is export-clean, so the seller knows the dialog should come up
+empty:
+
+```text
+Checked it against Regale's export validation - no errors or warnings, so Export won't
+stop you.
+```
+
+If something genuinely cannot be fixed, name it and say what the seller will see in the
+dialog, rather than letting them discover it after a fifteen-minute build.
+
+If the seller says a beacon you reported is not there, do not re-argue from the tally. One
+`render_page` on that page with the objects overlay settles it in a single call, and a
+disagreement about whether the demo works is worth that round trip.
 
 ### Then
 
@@ -548,7 +717,8 @@ reporting success and leaving the seller to discover it.
    to press Ctrl+S in Regale.
 2. Summarise honestly, from the self-check above rather than from memory:
    - Sections and pages created — the counts you just read back, and any empty section.
-   - Hotspots placed, and **every** hotspot skipped with the reason.
+   - Hotspots: how many recording placed, how many you had to add in the repair pass, and
+     **every** page still without one, named, with the reason.
    - Any scene skipped because it needed a desktop app or a URL that was never supplied.
 3. State that this is a working draft the seller should review in Regale before
    presenting.
@@ -643,14 +813,17 @@ Say the profile is designed to persist and that you will pause if it has not.
 
 ### Agent-driven build recording
 
-Regale's HTML Capturer supports **build recording**: while recording, each click
-creates a new page *and* automatically drops a themed hotspot on the clicked element,
-wired to advance. If agent-driven clicks register the same way a person's do, that
-collapses most of Phase 4 into a single pass.
+Agent-driven clicks do register: on a content site, recording chained the pages and placed
+the beacons exactly as a person's clicks would, which is why Phase 4 is built on it.
 
-The documentation says the input tools produce "the same kind of input a real user
-produces", but this has not been tested against a running Studio. Use the explicit loop
-above until someone confirms it. If it works, this pipeline gets substantially shorter.
+What is **not** established is where that stops holding. It has failed outright on
+Microsoft 365 Copilot chat — no chained pages, no beacons, no error — and nobody has yet
+mapped which surfaces work. The audit and canary in Phase 4 exist because that boundary is
+unknown, not because recording is expected to fail.
+
+Worth establishing: whether `pendingChainPageCount` is a reliable early signal on every
+surface that fails, or only some. If it is reliable, the canary can move earlier, to after
+the first click of scene 1, and cost one call instead of a scene.
 
 Build recording and HTML capture are both officially **Beta** in Regale 5.0. Behaviour
 may change between releases.
