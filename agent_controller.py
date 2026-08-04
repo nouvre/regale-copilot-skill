@@ -3,7 +3,7 @@ Lightweight state machine and command parser for the Regale demo agent.
 This is a reference implementation for use by the Copilot agent developer.
 
 Behavior:
-- Recognizes the start token `/demo` to enter DEFINITION mode.
+- Takes a demo brief to enter DEFINITION mode.
 - While in DEFINITION mode, the controller forbids any MCP/tool calls until
   it receives the exact confirmation phrase `confirm build`.
 - Provides helpers to apply simple inline edit commands to the in-memory
@@ -48,10 +48,10 @@ class AgentController:
         self.demo: Optional[DemoDef] = None
 
     def start_demo(self, raw_text: str) -> str:
-        """Start a demo only if raw_text begins with '/demo'. Returns status message."""
-        if not raw_text.strip().lower().startswith('/demo'):
-            return 'Error: To start, please use the /demo command followed by a short brief.'
-        brief = raw_text.strip()[5:].strip()
+        """Start a demo from a plain-language brief. Returns status message."""
+        brief = raw_text.strip()
+        if not brief:
+            return 'Error: To start, please give a short demo brief.'
         # Create a minimal demo object (in practice the agent would call the parser/NLP)
         self.demo = DemoDef(title=self._short_title(brief), audience='')
         # Populate with placeholders to be refined by the agent's NLP
@@ -160,7 +160,7 @@ class AgentController:
     def process_command(self, cmd: str) -> str:
         """Process a single inline command while in DEFINITION mode."""
         if self.mode != 'definition':
-            return "Not in DEFINITION mode. Start a demo with '/demo <brief>'."
+            return "Not in DEFINITION mode. Start a demo with a short brief."
         cmd = cmd.strip()
         # confirm build
         if cmd.lower() == 'confirm build':
@@ -236,7 +236,7 @@ class AgentController:
 # Small self-test when run directly
 if __name__ == '__main__':
     c = AgentController()
-    print(c.start_demo('/demo Pitch SharePoint to an executive. Keep it short and lead with business value, arguing how a single governed intranet cuts scattered files and drives faster decisions across the org.'))
+    print(c.start_demo('Pitch SharePoint to an executive. Keep it short and lead with business value, arguing how a single governed intranet cuts scattered files and drives faster decisions across the org.'))
     print(c.render_definition_response())
     print(c.process_command('edit duration scene 2 30'))
     print(c.render_definition_response())

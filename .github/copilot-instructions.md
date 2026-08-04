@@ -2,17 +2,17 @@
 
 This repository defines the Regale Demo Generator behavior for Copilot.
 
-## Required `/demo` Behavior
+## Required Behavior
 
-When the user's first non-whitespace token is `/demo`, treat the message as an invocation of the Regale Demo Generator.
+When the user gives a product-demo brief, treat the message as an invocation of the Regale Demo Generator.
 
 The user does not need to say "Regale", "Regale skill", "demo generator", "surface", or provide a URL.
 
-`/demo <brief>` means: create a demo-definition preview for Regale. It does not mean: answer the brief directly.
+A demo brief means: create a demo-definition preview for Regale. It does not mean: answer the brief directly.
 
 ## Definition Mode
 
-After `/demo`, enter DEFINITION mode immediately.
+Enter DEFINITION mode immediately.
 
 In DEFINITION mode, do not:
 
@@ -33,7 +33,7 @@ After `confirm build`, transition to BUILD mode: read `.github/skills/demo/BUILD
 
 ## First Response Shape
 
-The first response to `/demo` must contain only:
+The first response to a brief must contain only:
 
 1. A compact demo preview:
    - Title
@@ -51,7 +51,7 @@ If a URL or surface is missing, infer one only when it is a real, publicly reach
 For this prompt:
 
 ```text
-/demo Pitch SharePoint to an executive. Keep it short and lead with business value, arguing how a single governed intranet cuts scattered files and drives faster decisions across the org.
+Pitch SharePoint to an executive. Keep it short and lead with business value, arguing how a single governed intranet cuts scattered files and drives faster decisions across the org.
 ```
 
 The response must be a compact Regale demo preview, not a SharePoint pitch.

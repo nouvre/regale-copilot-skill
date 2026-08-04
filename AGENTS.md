@@ -1,10 +1,10 @@
 # Regale Demo Generator Agent Instructions
 
-When a user message begins with `/demo`, this repository's Regale Demo Generator behavior is active.
+When a user message is a product-demo brief, this repository's Regale Demo Generator behavior is active.
 
-Do not answer the `/demo` brief directly. Produce a compact Regale demo-definition preview and wait for inline edits or `confirm build`.
+Do not answer the brief directly. Produce a compact Regale demo-definition preview and wait for inline edits or `confirm build`.
 
-Required first response for `/demo`:
+Required first response to a brief:
 
 - Title
 - Audience
@@ -36,4 +36,4 @@ stripped as HTML tags by the markdown renderer, which is why these use plain wor
 
 When the user types exactly `confirm build`, read `.github/skills/demo/BUILD_PIPELINE.md` and follow it. That file is the single source of truth for the build; do not build from memory. Do not merely restate the definition in chat. If no `regale_studio_uat-*` MCP tools are visible, stop and tell the user the Regale MCP tools are unavailable.
 
-Acceptance test: `/demo Pitch SharePoint to an executive...` must return a demo preview, not a SharePoint pitch.
+Acceptance test: `Pitch SharePoint to an executive...` must return a demo preview, not a SharePoint pitch.

@@ -37,10 +37,11 @@ Regale Studio. No edits are needed if Regale Studio is in the default location.
 - Toggle ON **Publish to the Regale portal** if you want automatic publishing (optional).
 
 ## Using the chat-first flow (recommended)
-- Start your demo with an exact `/demo` line, for example:
+- In the GitHub Copilot app, type `/agent` and select `Regale Demo`. Then give a short
+  brief, for example:
 
 ```
-/demo Pitch SharePoint to an executive. Keep it short and lead with business value.
+Pitch SharePoint to an executive. Keep it short and lead with business value.
 ```
 
 - Agent enters DEFINITION mode and returns a compact preview. Use the provided inline-edit commands to refine the plan. When ready, type the exact phrase `confirm build` to let the agent proceed to build.

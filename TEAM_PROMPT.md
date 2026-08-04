@@ -29,7 +29,7 @@ Anything that leaks implementation detail into their chat is a bug.
 
 **DEFINITION mode** — runs anywhere, touches nothing.
 
-The seller types `/demo <brief>` or selects the `Regale Demo` agent. The agent returns a compact
+The seller selects the `Regale Demo` agent and types a brief. The agent returns a compact
 storyboard preview: title, audience, and numbered scenes carrying id, type, approximate duration,
 inferred URL if useful, a one-line narration, and up to two beats. Then it waits.
 
@@ -37,7 +37,7 @@ Before the seller types exactly `confirm build`, the agent must **not**: answer 
 directly, call any MCP tool, write a file, rename the session, start a background agent, or
 build/save/publish anything.
 
-The acceptance test that guards this: `/demo Pitch SharePoint to an executive…` must return a
+The acceptance test that guards this: `Pitch SharePoint to an executive…` must return a
 storyboard, **not** a SharePoint pitch. If you change definition-mode wording, re-run that test
 mentally against every runtime file.
 
@@ -61,7 +61,6 @@ so angle-bracket placeholders are parsed as HTML tags and silently deleted — t
 | `.github/skills/demo/BUILD_PIPELINE.md` | **Canonical build pipeline. The only copy.** |
 | `.github/skills/demo/SKILL.md` | Copilot Agent Skill — definition mode; points at the pipeline |
 | `.github/agents/regale-demo.agent.md` | Copilot app custom agent — same |
-| `.github/prompts/demo.prompt.md` | VS Code `/demo` prompt file — definition mode only |
 | `.github/copilot-instructions.md` | Auto-loaded repo instructions — definition mode only |
 | `AGENTS.md` | Auto-loaded agent instructions — definition mode only |
 | `AGENT_INSTRUCTIONS.md` | A pointer. It went stale once; it is deliberately hollow now |
@@ -73,8 +72,8 @@ so angle-bracket placeholders are parsed as HTML tags and silently deleted — t
 | `docs/regale/` | Regale Studio's own help articles, verbatim. Reference material — never edit to match our assumptions |
 
 **The rule that matters:** to change build behaviour, edit `BUILD_PIPELINE.md` and nothing else.
-The definition-mode rules are duplicated across **five** runtime files because Copilot's skill,
-agent, and prompt formats each load their own — if you change those rules, change all five. The
+The definition-mode rules are duplicated across **four** runtime files because Copilot's skill
+and agent formats each load their own — if you change those rules, change all four. The
 build pipeline is deliberately never duplicated, because a duplicated copy is exactly what went
 stale before.
 

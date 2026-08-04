@@ -1,6 +1,6 @@
 ---
 name: demo
-description: Create a Regale demo-definition preview from a short user brief. Use when the user asks for /demo, wants a Regale demo, or needs a short product-demo storyboard before building in Regale Studio.
+description: Create a Regale demo-definition preview from a short user brief. Use when the user wants a Regale demo, or needs a short product-demo storyboard before building in Regale Studio.
 ---
 
 # Regale Demo Generator
@@ -9,7 +9,7 @@ When this skill is invoked, treat the user's text as a Regale demo brief.
 
 The user does not need to say "Regale", "Regale skill", "demo generator", "surface", or provide a URL.
 
-`/demo <brief>` means: create a compact Regale demo-definition preview. It does not mean: answer the brief directly.
+A demo brief means: create a compact Regale demo-definition preview. It does not mean: answer the brief directly.
 
 ## Definition Mode
 
@@ -95,7 +95,7 @@ Two things that apply before you read it:
 For this prompt:
 
 ```text
-/demo Pitch SharePoint to an executive. Keep it short and lead with business value, arguing how a single governed intranet cuts scattered files and drives faster decisions across the org.
+Pitch SharePoint to an executive. Keep it short and lead with business value, arguing how a single governed intranet cuts scattered files and drives faster decisions across the org.
 ```
 
 Do not provide a SharePoint pitch. Provide a compact Regale demo preview similar to:

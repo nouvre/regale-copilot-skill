@@ -51,7 +51,6 @@ it happen and Ctrl+Z anything they dislike.
 | [`.github/skills/demo/BUILD_PIPELINE.md`](.github/skills/demo/BUILD_PIPELINE.md) | **Canonical build pipeline.** The only place it is written down. |
 | [`.github/skills/demo/SKILL.md`](.github/skills/demo/SKILL.md) | Copilot Agent Skill — definition mode, points at the pipeline |
 | [`.github/agents/regale-demo.agent.md`](.github/agents/regale-demo.agent.md) | Copilot app custom agent — same |
-| [`.github/prompts/demo.prompt.md`](.github/prompts/demo.prompt.md) | VS Code `/demo` prompt file — definition mode only |
 | [`.github/copilot-instructions.md`](.github/copilot-instructions.md) | Auto-loaded repo instructions — definition mode only |
 | [`AGENTS.md`](AGENTS.md) | Auto-loaded agent instructions — definition mode only |
 

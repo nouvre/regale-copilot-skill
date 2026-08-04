@@ -16,7 +16,6 @@ Read these instead:
 - **Definition mode** — whichever runtime file loaded you:
   [`.github/skills/demo/SKILL.md`](.github/skills/demo/SKILL.md),
   [`.github/agents/regale-demo.agent.md`](.github/agents/regale-demo.agent.md),
-  [`.github/prompts/demo.prompt.md`](.github/prompts/demo.prompt.md),
   [`.github/copilot-instructions.md`](.github/copilot-instructions.md), or
   [`AGENTS.md`](AGENTS.md).
 
@@ -28,6 +27,6 @@ definition maps onto Regale's project model.
 ## If you are editing behaviour
 
 Change [`BUILD_PIPELINE.md`](.github/skills/demo/BUILD_PIPELINE.md) and nothing else.
-The definition-mode rules are duplicated across five runtime files because Copilot's
-skill, agent, and prompt formats each load their own file — if you change those rules,
-change all five. The build pipeline is deliberately not duplicated.
+The definition-mode rules are duplicated across four runtime files because Copilot's
+skill and agent formats each load their own file — if you change those rules,
+change all four. The build pipeline is deliberately not duplicated.

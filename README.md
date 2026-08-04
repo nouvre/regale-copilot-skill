@@ -5,8 +5,7 @@ What this repo contains (minimal, lightweight):
 - manifest.json        - skill/extension metadata
 - .github/skills/demo/BUILD_PIPELINE.md - CANONICAL build pipeline; the only copy
 - .github/agents/regale-demo.agent.md - GitHub Copilot app custom agent for native demo sessions
-- .github/skills/demo/SKILL.md - Copilot Agent Skill exposed as `/demo`
-- .github/prompts/demo.prompt.md - VS Code prompt-file slash command fallback for `/demo`
+- .github/skills/demo/SKILL.md - portable Copilot Agent Skill
 - .mcp.json            - GitHub Copilot local MCP configuration for Regale Studio UAT
 - scripts/install-copilot-user-assets.ps1 - Windows installer for personal Copilot agent/skill/MCP setup; auto-detects the Regale bridge, preflights, verifies, offers a Copilot restart
 - scripts/install-from-github.ps1 - one-command installer that downloads the latest setup from GitHub
@@ -20,8 +19,8 @@ What this repo contains (minimal, lightweight):
 - .mcp.json            - Regale MCP server snippet (place in .vscode/mcp.json or your Copilot CLI config)
 
 Editing behaviour: change `.github/skills/demo/BUILD_PIPELINE.md` and nothing else. The
-definition-mode rules are duplicated across five runtime files because Copilot's skill,
-agent, and prompt formats each load their own; the build pipeline deliberately is not.
+definition-mode rules are duplicated across four runtime files because Copilot's skill
+and agent formats each load their own; the build pipeline deliberately is not.
 
 Quick setup (Windows):
 1) Install the Copilot agent, skill, and MCP config. In PowerShell:
@@ -38,7 +37,6 @@ Quick setup (Windows):
 2) Generate a demo from a plain-language prompt in Copilot (recommended):
    - In the GitHub Copilot app, open this repository as the project, type `/agent`, and select `Regale Demo`.
    - Then enter a short brief, such as: `Pitch SharePoint to an executive. Keep it short and lead with business value.`
-   - In VS Code or another IDE that supports prompt files, you can also use `/demo Pitch SharePoint to an executive. Keep it short and lead with business value.`
    - The agent will enter DEFINITION mode, generate a compact, structured preview in-chat (card/outline), allow short inline edits via commands, and will only proceed to build after you issue the exact phrase `confirm build`.
    - NOTE: the agent will refuse to call Regale MCP tools or start any background build while in DEFINITION mode.
    - If Copilot answers with a normal pitch instead of a preview, confirm the `Regale Demo` custom agent is selected. The custom agent is defined in `.github/agents/regale-demo.agent.md`; the portable skill is defined in `.github/skills/demo/SKILL.md`.
