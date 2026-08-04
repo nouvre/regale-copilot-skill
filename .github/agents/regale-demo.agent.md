@@ -103,7 +103,7 @@ Two things that apply before you read it:
 - If no `regale_studio_uat-*` tools are available, stop and say:
 
   ```text
-  I am ready to build, but I cannot see the Regale Studio MCP tools yet. Confirm Regale Studio UAT is running, the MCP bridge is configured in $HOME\.copilot\mcp-config.json, and restart GitHub Copilot.
+  I am ready to build, but I cannot see the Regale Studio MCP tools yet. Confirm Regale Studio UAT is running, the MCP bridge is configured in %USERPROFILE%\.copilot\mcp-config.json, and restart GitHub Copilot.
   ```
 
 ## Acceptance Test

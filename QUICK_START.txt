@@ -16,7 +16,8 @@ BEFORE YOU START
 2. A Regale project is open (File -> New, or open an existing one).
 3. The Copilot assets are installed. From this folder, double-click:
       install-regale-demo.cmd
-   Then fully restart GitHub Copilot (system tray -> Exit, then reopen).
+   It checks everything it needs, installs, then offers to restart Copilot
+   for you. Say yes -- Copilot only reads the new files at startup.
 
 Full setup instructions: WINDOWS_COPILOT_APP.md
 
@@ -93,6 +94,11 @@ IF SOMETHING LOOKS WRONG
      -> It did not read the build instructions. Ask it:
         "did you read BUILD_PIPELINE.md?"
         If that file is missing, re-run install-regale-demo.cmd
+
+- It says a tool it needs "isn't available" and stops
+     -> Run install-regale-demo-all-tools.cmd, restart Copilot, and tell us
+        which tool was missing. Builds are slower this way, so switch back
+        with install-regale-demo.cmd once it is added to the default list.
 
 - It says the Regale tools are unavailable
      -> Make sure Regale Studio is running with a project open, then

@@ -2,49 +2,39 @@
 
 ## Prerequisites
 - Windows PC with Regale Studio installed and running.
-- VS Code with GitHub Copilot agent mode (or Copilot CLI) on the same PC as Regale Studio.
-- Python 3.8+ (optional; only needed for .docx parsing).
-- Git and a GitHub account (to clone this repo).
+- GitHub Copilot (the app, the CLI, or VS Code agent mode) on the same PC as Regale Studio.
 
-## Quick configuration
+Git and Python are not needed to install or use this. They are only needed for the
+optional `.docx` parser at the bottom of this page.
 
-1. Clone the repo:
+## Install
 
-```
-git clone https://github.com/nouvre/regale-copilot-skill.git
-cd regale-copilot-skill
-```
+Open PowerShell and paste one line:
 
-2. Create a virtual environment and install the Python dependencies (needed for .docx parsing and the build orchestrator):
-
-```
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+```powershell
+irm https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1 | iex
 ```
 
-On macOS/Linux use `python3 -m venv .venv` and `source .venv/bin/activate`.
-Run `deactivate` to leave the environment. The `.venv` folder is git-ignored.
+If you already have this folder on disk, double-click `install-regale-demo.cmd` instead.
 
-3. Configure VS Code for MCP (already included):
-- The file `.vscode/mcp.json` is preconfigured to point to the Regale MCP bridge as shipped with Regale Studio.
-- No additional edits should be necessary if Regale Studio is installed in the default location.
+The installer checks your machine, installs the `Regale Demo` agent and `demo` skill into
+`%USERPROFILE%\.copilot`, registers the Regale MCP server, verifies what it wrote, and
+offers to restart Copilot. Say yes to the restart — Copilot only reads these files at
+startup.
 
-4. Ensure Regale Studio settings & permissions:
+See [WINDOWS_COPILOT_APP.md](WINDOWS_COPILOT_APP.md) for what it installs, non-default
+Regale install paths, and troubleshooting.
+
+### VS Code
+
+The repo's `.vscode/mcp.json` already points at the Regale MCP bridge as shipped with
+Regale Studio. No edits are needed if Regale Studio is in the default location.
+
+## Ensure Regale Studio settings & permissions
 - Open Regale Studio on the same PC.
 - Open **AI & Agents** → **Permissions**.
 - Toggle ON **Save project files** if you want the agent to save projects automatically.
 - Toggle ON **Publish to the Regale portal** if you want automatic publishing (optional).
-
-5. SSH / Git authentication (recommended):
-- Set up an SSH key and add it to GitHub for push/pull convenience:
-
-```
-ssh-keygen -t ed25519 -C "your_email@example.com"
-# then copy your public key and add it to GitHub > Settings > SSH and GPG keys
-```
-
-Alternative: use `gh auth login` or a Personal Access Token (PAT) for HTTPS pushes.
 
 ## Using the chat-first flow (recommended)
 - Start your demo with an exact `/demo` line, for example:
@@ -57,19 +47,32 @@ Alternative: use `gh auth login` or a Personal Access Token (PAT) for HTTPS push
 
 - Safety note: The agent will refuse to call Regale tools or start builds until `confirm build` is issued.
 
-## Optional: Parse existing Word demo scripts
-- The repo includes `parser.py` (for teams that still author Word scripts).
-- It expects a two-column table with headings "What to say" and "What to show".
-- Run:
+## Troubleshooting
+- If the agent says "Capturer not open": Open Regale Studio → View → Open Capturer.
+- If Save/Publish operations fail: re-check Regale Studio → AI & Agents → Permissions.
+- Anything about the install itself: [WINDOWS_COPILOT_APP.md](WINDOWS_COPILOT_APP.md#quick-troubleshooting).
+
+## Optional: parse existing Word demo scripts
+
+Only for teams that still author demos as Word documents. This is the one part that needs
+Python 3.8+ and a clone of the repo.
+
+```powershell
+git clone https://github.com/nouvre/regale-copilot-skill.git
+cd regale-copilot-skill
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+On macOS/Linux use `python3 -m venv .venv` and `source .venv/bin/activate`. Run
+`deactivate` to leave the environment; `.venv` is git-ignored.
+
+`parser.py` expects a two-column table with headings "What to say" and "What to show":
 
 ```
 python parser.py path\to\your.docx -o demo.yaml
 ```
-
-## Troubleshooting
-- If the agent says "Capturer not open": Open Regale Studio → View → Open Capturer.
-- If Save/Publish operations fail: re-check Regale Studio → AI & Agents → Permissions.
-- If git push fails: ensure SSH key is added to your GitHub account or run `gh auth login`.
 
 ## Questions
 Open an issue in the repo or contact the adapter owner.

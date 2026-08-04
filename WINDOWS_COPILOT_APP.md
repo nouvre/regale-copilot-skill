@@ -7,48 +7,45 @@ where Regale Studio is running.
 
 1. Install and sign in to GitHub Copilot.
 2. Install Regale Studio UAT.
-3. Open PowerShell.
-4. Run the installer:
+3. Open PowerShell and paste this one line:
 
 ```powershell
-$u = 'https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1'
-$p = Join-Path $env:TEMP 'install-regale-demo.ps1'
-Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p
-powershell -NoProfile -ExecutionPolicy Bypass -File $p
+irm https://raw.githubusercontent.com/nouvre/regale-copilot-skill/main/scripts/install-from-github.ps1 | iex
 ```
 
-If this repository is already downloaded, you can instead double-click:
+If you already have this folder on disk, double-click `install-regale-demo.cmd` instead.
 
-```text
-install-regale-demo.cmd
-```
-
-Advanced/local install:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\scripts\install-copilot-user-assets.ps1
-```
+The installer checks your machine first and prints a pass/fail line for each thing it
+needs, so if something is missing you see all of it at once rather than discovering it
+mid-build. It finds `regale-mcp-bridge.exe` itself — from a running Regale Studio, the
+usual install folders, or the uninstall registry — and refuses to write a configuration
+pointing at a bridge that isn't there. It then reads back what it wrote to confirm the
+files landed and the config parses.
 
 This installs:
 
-- `Regale Demo` as a personal Copilot custom agent in `$HOME\.copilot\agents`.
-- `demo` as a personal Copilot skill in `$HOME\.copilot\skills`, including
+- `Regale Demo` as a personal Copilot custom agent in `%USERPROFILE%\.copilot\agents`.
+- `demo` as a personal Copilot skill in `%USERPROFILE%\.copilot\skills`, including
   `BUILD_PIPELINE.md` — the build instructions the agent reads after `confirm build`.
-- The Regale Studio UAT MCP server in `$HOME\.copilot\mcp-config.json`, registering the
+- The Regale Studio UAT MCP server in `%USERPROFILE%\.copilot\mcp-config.json`, registering the
   ~50 Regale tools a demo build uses rather than all ~138. The full catalogue costs about
   55,000 tokens of context on every model request, and a build makes 60–100 of those, so
   trimming it makes every step faster. If a build ever stops because a tool was not
-  registered, rerun the installer with `-AllTools` and tell us which one was missing.
+  registered, run `install-regale-demo-all-tools.cmd` and tell us which one was missing.
 
-If Regale Studio is installed somewhere else, pass the bridge path:
+Any other MCP servers already in your Copilot config are left alone.
+
+Copilot only reads agent, skill, and MCP files at startup, so it has to be restarted. If
+it is running, the installer offers to close and relaunch it for you — answer `y`.
+Otherwise restart it yourself with **Exit** from the system tray; closing the window is
+not enough.
+
+Detection covers the default and common install paths. If your Regale install is
+somewhere unusual, point at it directly:
 
 ```powershell
 .\scripts\install-copilot-user-assets.ps1 -RegaleMcpBridgePath "C:\Path\To\regale-mcp-bridge.exe"
 ```
-
-Restart GitHub Copilot afterwards. Use **Exit** from the system tray, not just closing
-the window — the agent and skill files are only read at startup.
 
 ## How Capture Works
 
@@ -196,11 +193,13 @@ the desktop ones need you.
   Exit) after running the installer.
 - **The agent starts building without mentioning permissions or profiles** — it did not
   read the pipeline. Ask it: *"did you read BUILD_PIPELINE.md?"* If the file is missing,
-  re-run `scripts\install-copilot-user-assets.ps1`.
-- **Regale tools unavailable** — confirm the config contains `regale-studio-uat`:
+  re-run the installer.
+- **Regale tools unavailable** — re-run the installer. Its verify step reports whether the
+  config is valid and whether the bridge it names actually exists, which is the usual
+  cause. To look yourself:
 
   ```powershell
-  Get-Content "$HOME\.copilot\mcp-config.json"
+  Get-Content "$env:USERPROFILE\.copilot\mcp-config.json"
   ```
 
 - **"Studio offline" or changes don't appear** — make sure a Regale Studio window is
@@ -214,7 +213,8 @@ the desktop ones need you.
   expected (see [How long](#how-long-and-why-it-looks-stuck)). Turn on allow-all to avoid
   it entirely.
 - **"That tool isn't available"** mid-build — the tool is outside the installed subset.
-  Rerun `scripts\install-copilot-user-assets.ps1 -AllTools`, restart Copilot, and report
-  which tool it was so it can be added to the default list.
-- **The MCP bridge cannot start** — verify the path to `regale-mcp-bridge.exe` next to
-  `RegaleStudio.exe`.
+  Run `install-regale-demo-all-tools.cmd`, restart Copilot, and report which tool it was
+  so it can be added to the default list.
+- **The MCP bridge cannot start** — re-run the installer; it re-detects the bridge and
+  fails loudly if it cannot find one. If Regale Studio is running when you install,
+  detection uses that install's folder.
