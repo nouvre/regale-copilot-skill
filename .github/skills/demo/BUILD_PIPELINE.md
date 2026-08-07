@@ -235,20 +235,34 @@ project at that point, and a project needs one.
 
 ## Phase 3 — Capture profile and sign-in
 
-A capture profile is an isolated, persistent browser identity. It is what lets a later
-build run unattended: the seller signs in once, and the profile stays signed in.
+A capture profile is an isolated, persistent browser identity. Its cookies persist across
+builds, so a seller who signed in last week may still be signed in — but may not. A
+session can expire, MFA can reset, or the seller can be on a different machine.
+
+**Always ask. Never skip sign-in confirmation because a profile already exists.** The cost
+of asking is one extra message. The cost of silently capturing a sign-in page as a slide
+is a broken demo the seller discovers during a customer meeting.
+
+Once signed in, the profile's session covers every Microsoft 365 product — SharePoint,
+Outlook, Teams, Defender, Purview — for the life of that session. One prompt at the start
+is enough; do not ask again per scene.
 
 1. You already called `list_capture_profiles` in the opening sweep — use that result
    rather than calling it again.
 2. A profile for this demo environment exists → `switch_capture_profile` to it.
-3. It does not exist → `create_capture_profile`, switch to it, then:
-   - `open_html_capturer` and `navigate_capturer` to the product's sign-in page.
+   It does not exist → `create_capture_profile`, then `switch_capture_profile` to it.
+3. **Always — whether the profile is new or existing:**
+   - `open_html_capturer`.
+   - `navigate_capturer` to the product's sign-in or canonical entry page. For Microsoft
+     365 products use `https://www.office.com` so the profile's full session is exercised
+     before any capture. For other vendors, use their canonical sign-in page.
    - **Stop and hand over to the seller:**
 
      ```text
-     I've opened <product> in a new capture profile called "<name>". Sign in there once,
-     including any MFA prompt, then tell me you're done. I'll reuse this profile for
-     every future build, so this is a one-time step.
+     I've opened the HTML Capturer and navigated to <product>. Please sign in if you
+     see a login screen — including any MFA step. If you're already signed in you'll land
+     straight on the product. Either way, tell me when you're ready and I'll start the
+     build. I'll use this session for every scene, so this is a one-time step per build.
      ```
 
    - Wait. Do not attempt to type credentials or read stored passwords.
