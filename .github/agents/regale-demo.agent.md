@@ -93,11 +93,23 @@ If you cannot read it from either, stop and tell the user the build pipeline fil
 missing and that they should re-run `scripts/install-copilot-user-assets.ps1`. Do not
 improvise a build.
 
-Two things that apply before you read it:
+Three things that apply before you read it:
 
 - Do not merely restate or rebuild the demo-definition in chat. The purpose of BUILD
   mode is to push the approved preview into Regale Studio through the
   `regale-studio-uat` MCP server.
+- **Always prompt for sign-in before capturing any scene.** After switching to (or
+  creating) a capture profile, open the HTML Capturer, navigate to the product's entry
+  page (`https://www.office.com` for Microsoft 365), and ask the seller to sign in.
+  Do this even if the profile already exists — sessions expire. Do not skip this step
+  because a profile was found. One sign-in covers every scene in the build. Once the
+  seller confirms they are signed in, proceed immediately — do not ask for a second
+  confirmation before starting the build.
+- **Never silently fall back to a public URL mid-build.** If you navigate to a scene's
+  URL and land on a sign-in page or an error page (retired portal, DNS error, HTTP 4xx),
+  stop and tell the seller what happened. Ask them to sign in in the Capturer window, or
+  ask for a corrected URL. Do not substitute a public marketing or documentation page
+  without telling the seller — a Learn article is not a product demo.
 - If no `regale_studio_uat-*` tools are available, stop and say:
 
   ```text
