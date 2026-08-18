@@ -93,7 +93,7 @@ after every scene for the seller to press Ctrl+S.
 
 ## Phase 0 — Say what this costs, before you start
 
-A build with visual refinement is roughly **25 tool calls per scene**, so a three-scene demo is 75–120 calls,
+A build with visual refinement is roughly **30 tool calls per scene**, so a three-scene demo is 90–140 calls,
 each one a separate model round trip. Do not convert that count into a confident runtime:
 call latency varies too much, and field builds have taken hours. State the 30-minute
 timebox and that the result may be a saved partial draft instead.
@@ -126,7 +126,7 @@ So ask once, up front, folded together with the Phase 1 permission check.
 ### One message, in this order
 
 ```text
-Building 3 scenes is roughly 90 Regale calls. I'm timeboxing this build to 30 minutes of
+Building 3 scenes is roughly 105 Regale calls. I'm timeboxing this build to 30 minutes of
 tool work: at that point I will save and report the exact partial result rather than keep
 retrying. I will post progress and a saved checkpoint after every scene.
 
@@ -144,7 +144,7 @@ Tell me when both are done and I'll start.
 ```
 
 The opening paragraph is **not optional garnish** — it is the phase. The numbered list is
-the cheap part. Scale the call count to the actual plan at roughly twenty-five calls per scene,
+the cheap part. Scale the call count to the actual plan at roughly thirty calls per scene,
 but do not promise a completion time. The operational promise is the stop time.
 
 Two caveats worth knowing, though you do not need to recite them:
@@ -565,8 +565,9 @@ Captured pages are raw material, not the final sequence. A successful capture ca
 contain a modal, a blank transition, or two pages showing the same useful state. Do not
 hand that sequence to the seller as "done" and make them discover the cleanup themselves.
 
-Render each newly captured page **once** without the objects overlay. Read the pages in
-order and compare adjacent pages. For each page, write an internal verdict:
+Select each newly captured page with `set_selection`, then call `capture_view` on the
+Studio editor/workspace **once**. Read those screenshots in order and compare adjacent
+pages. For each page, write an internal verdict:
 
 - **Keep** — it shows a distinct, stable state required by an approved beat, or it is the
   necessary before/after state for a click.
@@ -638,8 +639,8 @@ does not go in the line.
 Write all of a scene's notes together like this. Interleaving them into every page doubles
 the number of round trips for no benefit.
 
-Do not render a kept page again during the beacon audit. The refinement render already
-established its visual state; `get_shapes` supplies the object evidence.
+Do not visually capture a kept page again during the beacon audit. The refinement
+screenshot already established its visual state; `get_shapes` supplies the object evidence.
 
 #### Beacon audit and repair — every scene, before you move on
 
@@ -904,30 +905,39 @@ or its final summary.
 
 These are completion criteria, not suggestions:
 
-1. Confirm both `render_page` and `remove_page` are visible. If either is missing, stop
-   and name it. Do not substitute `get_page`, hiding, or text edits.
-2. `render_page` every visible page once, in section/page order, without the objects
-   overlay. Assign **Keep**, **Remove**, or **Review** from the rendered image. Make no
-   writes until every page in the current section has a visual verdict.
+1. Confirm `capture_view`, `set_selection`, and `remove_page` are visible. If any is
+   missing, stop and name it. Do not substitute `get_page`, hiding, or text edits.
+   `render_page` is not a bulk-refinement dependency.
+2. For every visible page in section/page order, use `set_selection` to select it and then
+   call `capture_view` on the Studio editor/workspace. Assign **Keep**, **Remove**, or
+   **Review** from that screenshot. Make no project-content writes until every page in
+   the current section has a visual verdict.
 3. Remove clear **Remove** pages with `remove_page`, highest page number first. Never call
    `update_properties` on a project, section, or page in refinement mode.
 4. Re-list the section, then use `get_shapes` only on retained pages whose navigation may
    have changed. Property writes are permitted only on shapes to repair those actions.
 5. Save the completed section. Do not use shell commands to wait for or inspect the save.
 
-The agent may say refinement is complete only when the rendered-verdict count equals the
-original visible-page count. Its final summary must state that count, every removal and
+The agent may say refinement is complete only when the screenshot-verdict count equals
+the original visible-page count. Its final summary must state that count, every removal and
 reason, every **Review** page, and the navigation pages verified. Zero `render_page` calls
-means zero visual refinement, regardless of any other edits made.
+is valid because `capture_view` is the primary visual inspection path. Zero `capture_view`
+calls means zero visual refinement, regardless of any other edits made.
+
+Do not call `render_page` unless one selected-page screenshot is genuinely ambiguous. It
+gets one attempt on that page only. If any visual call consumes more than 60 seconds, stop
+after it returns, save completed work, and report the stalled page rather than starting
+another visual call.
 
 Forbidden tools/actions in this mode: `get_page` as a visual substitute, `set_text`,
-capture or recording, product interaction, shell commands, page/section/project property
-edits, page hiding, accessibility work, presenter-note work, and title/section polishing.
+capture or recording creation, product interaction, shell commands, page/section/project
+property edits, page hiding, accessibility work, presenter-note work, and title/section
+polishing. `capture_view` is inspection, not capture creation.
 
 1. Check Read, Edit, and Save permissions, then read `list_sections` and `list_pages`.
 2. For each section, apply the [visual refinement](#visual-refinement--every-scene-before-notes-and-beacons)
-   classification to its existing pages. Render each page once and remove only **Remove**
-   verdicts, from highest page number to lowest.
+   classification to its existing pages. Select and screenshot each page once, then remove
+   only **Remove** verdicts, from highest page number to lowest.
 3. Re-read that section once, audit advancing shapes on the pages immediately before each
    removal and on the retained sequence, and use the same bounded-recovery rule for any
    broken navigation. Do not rewrite notes or descriptions; report a now-inaccurate note

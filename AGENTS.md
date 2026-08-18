@@ -26,25 +26,30 @@ must not be a question, prioritization prompt, or choice list.
 
 **Mandatory tool gates:**
 
-1. Confirm both `render_page` and `remove_page` are visible. If either is missing, stop
-   and name the missing tool. Do not substitute metadata inspection, page hiding, or text
-   editing.
-2. Call `render_page` once for every visible page, in section/page order, without the
-   objects overlay. `get_page` does not satisfy visual inspection. Make no writes until
-   every page in the current section has a rendered **Keep**, **Remove**, or **Review**
-   verdict.
+1. Confirm `capture_view`, `set_selection`, and `remove_page` are visible. If any is
+   missing, stop and name it. Do not substitute metadata inspection, page hiding, or text
+   editing. `render_page` is not a bulk-refinement dependency.
+2. For every visible page in section/page order, use `set_selection` to select that page,
+   then `capture_view` on the Studio editor/workspace. `get_page` does not satisfy
+   visual inspection. Assign **Keep**, **Remove**, or **Review** from that screenshot.
+   Make no project-content writes until every page in the current section has a verdict.
 3. Apply clear **Remove** verdicts with `remove_page`, highest page number first. Never
    use `update_properties` on a project, section, or page during refinement.
 4. Re-list pages, then call `get_shapes` only on retained pages whose navigation may
    have changed. Property writes are allowed only on shapes to repair those click actions.
-5. Save each completed section. Refinement is complete only when the number of rendered
-   verdicts equals the original visible-page count. The final summary must state pages
-   rendered, pages removed with reasons, **Review** pages, and navigation verified.
+5. Save each completed section. Refinement is complete only when the screenshot-verdict
+   count equals the original visible-page count. The final summary must state pages
+   inspected, pages removed with reasons, **Review** pages, and navigation verified.
    Otherwise report a saved partial refinement and the exact resume point.
 
-Forbidden in refinement mode: `set_text`, capture/recording tools, product interaction,
-shell commands, accessibility work, presenter-note work, section/title edits, and hiding
-pages.
+Do not call `render_page` unless one selected-page screenshot is genuinely ambiguous.
+It gets one attempt on that page only. If any visual call consumes more than 60 seconds,
+stop after it returns, save completed work, and report the stalled page rather than
+starting another visual call.
+
+Forbidden in refinement mode: `set_text`, capture/recording creation tools, product
+interaction, shell commands, accessibility work, presenter-note work, section/title
+edits, and hiding pages. `capture_view` is inspection, not capture creation.
 
 When a user message is a product-demo brief, this repository's Regale Demo Generator behavior is active.
 

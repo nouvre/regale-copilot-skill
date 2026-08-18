@@ -313,12 +313,13 @@ $refinementToolsOk = $false
 try {
     $registeredTools = @($server.tools)
     $refinementToolsOk = ($registeredTools -contains "*") -or
-        (($registeredTools -contains "render_page") -and
+        (($registeredTools -contains "capture_view") -and
+         ($registeredTools -contains "set_selection") -and
          ($registeredTools -contains "remove_page"))
 } catch {
     $refinementToolsOk = $false
 }
-Write-Check $refinementToolsOk "Refinement tools registered" "render_page, remove_page"
+Write-Check $refinementToolsOk "Refinement tools registered" "capture_view, set_selection, remove_page"
 if (-not $refinementToolsOk) { $failures.Add("refinement tools") }
 
 if ($AllTools) {
