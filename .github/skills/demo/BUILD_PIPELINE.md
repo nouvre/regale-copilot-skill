@@ -21,6 +21,12 @@ BUILD mode starts only after the user types exactly `confirm build`.
 - **No publishing.** The build ends at a saved project. The seller reviews and
   publishes from Regale themselves.
 - **Output is a working draft**, not a finished demo. Say so in the final summary.
+- **Capture, do not provision the product being demonstrated.** This pipeline may stage
+  cosmetic text and images, navigate, and click through an existing environment. It must
+  not create or repair Dataverse tables, Power Apps, Power Automate flows, Power BI
+  reports, connectors, tenant configuration, or other product resources. If a planned
+  state is missing or invalid, skip that beat or scene, record the blocker, and continue.
+  Product setup is a separate task that needs its own explicit request and time budget.
 
 ## Tool names
 
@@ -30,12 +36,67 @@ unless a Regale capture tool actually succeeded.
 
 ---
 
+## Operational limits — binding on every phase
+
+These limits are circuit breakers, not estimates. They override instructions elsewhere
+to repair, retry, wait, or finish a scene.
+
+### Build timebox
+
+- Start an **active-build clock** with the first Regale tool call. The default timebox is
+  **30 minutes of tool work**. Time visibly spent waiting for the seller to approve a
+  tool or complete sign-in does not count.
+- Check elapsed active-build time before every Regale tool call and again when it returns.
+  Do not rely only on scene-boundary checks; a repair sequence can otherwise overrun the
+  limit by itself.
+- At 25 minutes, do not start another scene or optional pass. Finish reconciling the
+  current scene, save a checkpoint, and report what remains.
+- At 30 minutes, make no more capture, audit, or repair calls. Save immediately if the
+  permission is available, then return a partial-build summary with the exact resume
+  point. If Save is unavailable, stop and tell the seller to press Ctrl+S.
+- Continuing past the timebox requires a **new explicit user message**. Silence is not
+  permission to continue. Never extend the timebox because the project is nearly done.
+
+### Bounded recovery
+
+For one failed operation, the entire recovery budget is:
+
+1. The original operation.
+2. One diagnostic read that can change the next action.
+3. One repair attempt.
+4. One verification read.
+
+If the repair or verification fails, stop working that defect. Record the page, scene,
+operation, and error; save the partial draft; then continue with an independent scene if
+the timebox permits. **Never try selector variants, repeat the same rejected anchor, or
+enter a diagnose-repair-verify loop.** A cross-scene beacon that rejects its anchor or
+action once gets at most the single repair attempt above, then becomes a handoff item.
+
+### Waiting and lack of progress
+
+- Never issue a wait longer than 60 seconds. After one wait, read state once. If the
+  state has not advanced, apply bounded recovery or pause; do not stack more waits.
+- Two consecutive tool calls with no observable project or capturer-state progress are
+  a stall. Save and report the partial draft instead of making a third speculative call.
+- Tool success is not progress unless a readback shows a changed URL, page count, shape,
+  property, or saved state.
+
+### Durable checkpoints
+
+Save after project creation and after every reconciled scene, not only in Phase 5. A
+checkpoint happens before announcing scene progress. If Save permission is off, an
+unattended build is unsafe: stop in Phase 1 and ask the seller either to enable **Save
+project files** or explicitly choose manual checkpoint mode, in which the build pauses
+after every scene for the seller to press Ctrl+S.
+
+---
+
 ## Phase 0 — Say what this costs, before you start
 
 A build is roughly **20 tool calls per scene**, so a three-scene demo is 60–100 calls,
-each one a separate model round trip. On a good day that is 10–15 minutes. When the
-model service is slow it can be three times that, and there is nothing this pipeline can
-do about it.
+each one a separate model round trip. Do not convert that count into a confident runtime:
+call latency varies too much, and field builds have taken hours. State the 30-minute
+timebox and that the result may be a saved partial draft instead.
 
 Sellers read silence as a hang and walk away from the window. Your **first message after
 `confirm build`**, before any tool call, has to prevent that.
@@ -45,7 +106,7 @@ Sellers read silence as a hang and walk away from the window. Your **first messa
 Open with it. Not a heading, not a preamble — the estimate itself, as the opening
 sentence:
 
-> scene count · rough call count · rough minutes · long gaps are normal
+> scene count · rough call count · 30-minute stop · saved partial-draft behavior
 
 This is the half that is easy to lose, because the setup asks below feel more actionable
 and they arrive in a tidy numbered list. They are not more important. A seller who
@@ -65,9 +126,9 @@ So ask once, up front, folded together with the Phase 1 permission check.
 ### One message, in this order
 
 ```text
-Building 3 scenes. That's around 70 Regale calls, usually 10-15 minutes, and it can be
-slower when the model service is busy. Long pauses between steps are normal - if it goes
-quiet for a minute, it's working, not stuck.
+Building 3 scenes is roughly 70 Regale calls. I'm timeboxing this build to 30 minutes of
+tool work: at that point I will save and report the exact partial result rather than keep
+retrying. I will post progress and a saved checkpoint after every scene.
 
 Before I start, two toggles so it doesn't stop halfway:
 
@@ -76,15 +137,15 @@ Before I start, two toggles so it doesn't stop halfway:
    answer. If you'd rather approve them one by one, that's fine - I've front-loaded
    most of them, so expect a cluster of prompts early and a few more during the build.
 2. In Regale Studio -> Home ribbon -> AI & Agents -> Permissions, confirm Read project
-   content, Edit project content, and Browser automation are on. Save project files is
-   optional; without it you press Ctrl+S at the end.
+   content, Edit project content, Browser automation, and Save project files are on.
+   Without Save, I must pause after every scene for you to press Ctrl+S.
 
 Tell me when both are done and I'll start.
 ```
 
 The opening paragraph is **not optional garnish** — it is the phase. The numbered list is
-the cheap part. Scale the numbers to the actual plan: count the scenes you are about to
-build, reckon roughly twenty calls each, and give a range in minutes rather than a promise.
+the cheap part. Scale the call count to the actual plan at roughly twenty calls per scene,
+but do not promise a completion time. The operational promise is the stop time.
 
 Two caveats worth knowing, though you do not need to recite them:
 
@@ -99,8 +160,8 @@ Report progress at each scene boundary — "scene 2 of 4 recorded, 5 pages, beac
 the fact that recording was supposed to place them.
 
 If the canary check in Phase 4 finds recording is not placing beacons on this surface, the
-build switches to placing them by hand and gets longer. Say so when it happens and give a
-revised range, rather than letting the original estimate quietly expire.
+build switches to placing them by hand only while the original timebox remains. Say that
+the saved draft may contain fewer scenes; never extend the deadline silently.
 
 ## Phase 1 — Preconditions
 
@@ -118,7 +179,7 @@ revised range, rather than letting the original estimate quietly expire.
    | Read project content | Everything | Stop. Ask the user to enable it. |
    | Edit project content | Everything | Stop. Ask the user to enable it. |
    | Browser automation | All capture | Stop. Ask the user to enable it. |
-   | Save project files | Saving at the end | Not a blocker. Warn once now, and tell the seller to press Ctrl+S themselves at the end. |
+   | Save project files | Checkpoints and cancellation recovery | Stop unless the seller explicitly chooses manual checkpoint mode. |
    | Publish | Not used in v1 | Ignore. |
 
    Phase 0 already asked for these. This step verifies rather than re-asks. If something
@@ -401,6 +462,10 @@ Rules carried over and still binding:
   host the seller has not supplied.
 - A scene marked `(needs your tenant URL)` → try [Phase 3.5](#phase-35--discover-the-tenant-entry-url)
   first. Only ask the seller if redirect discovery fails.
+- The destination state must already exist and work. A broken flow, unresolved connector,
+  missing table, empty report, or invalid app is an environment blocker, not an invitation
+  to build or debug that resource. Name the blocked beat and move to the next independent
+  scene. Do not spend Regale build time repairing the product being captured.
 
 ### Record the scene, then write the talk track
 
@@ -435,7 +500,7 @@ is not optional.
    do not assume it is the last section.
 3. Navigate to the scene's entry URL, or carry on from where the previous scene ended if
    it is the same app.
-4. `wait_for_capturer`, then **verify the page actually loaded** with
+4. `wait_for_capturer` once for at most 60 seconds, then **verify the page actually loaded** with
    `get_capturer_state`. A settled page is not a loaded page. Treat all of these as
    failures and do **not** record:
    - Browser errors — "can't reach this page", `ERR_NAME_NOT_RESOLVED`,
@@ -444,6 +509,8 @@ is not optional.
    - A redirect to sign-in when signed-in content was expected. The profile's session
      expired — pause using [Pausing and resuming](#pausing-and-resuming-without-losing-the-plan)
      and never capture the sign-in page as a slide.
+   - No observable change after the wait. Do one diagnostic state read, then pause or
+     skip the scene; never respond with another multi-minute wait.
 5. Capture size — **usually nothing to do.** The capturer already defaults to fixed
    1920x1080, and the emulation is live and persists across navigations, so calling
    `set_capture_size_mode` every scene sets it to what it already was. Call it only to
@@ -463,7 +530,7 @@ is not optional.
    - Find the target with a **narrow** `list_elements` query — pass `query` and
      `kind: 'clickable'`, and keep `maxResults` small. A broad listing returns hundreds of
      elements that stay in context and slow down every later step.
-   - `click_element`, then `wait_for_capturer`.
+   - `click_element`, then `wait_for_capturer` once for at most 60 seconds.
    - Reveal anything the next beat needs — expand a menu, scroll a list. On-demand content
      is only captured if it is already on the page.
    - Do **not** call `get_recording_state` between every click. It is a health check, not a
@@ -538,8 +605,8 @@ the next scene's first page, and a viewer stranded at the end of section 1 has t
 broken demo as one stranded on page 2. Since you audit per scene, treat every page as
 needing a beacon and revisit only the true last page once the build is complete.
 
-**Repair every failing page now**, in the same pass, while you still know what the scene
-was clicking:
+**Attempt one repair for each failing page now**, in the same pass, while you still know
+what the scene was clicking:
 
 1. Find the element the beat clicked. `query_dom` and `list_elements` both work against the
    captured page in the editor, not just the live capturer — so a page captured minutes ago
@@ -558,10 +625,24 @@ was clicking:
 Then update the tally from the re-read, and count the repair in the totals so the summary
 distinguishes beacons recording placed from beacons you had to add.
 
-If the element genuinely cannot be found — the click was on something the DOM no longer
-exposes, or the page is an image page with no DOM — do not force it. Leave the page, name
-it in the final summary as needing a hotspot placed by hand, and keep going. Never abort
-the build over one element.
+This six-step sequence is **one repair attempt**, not a recipe to restart when any step
+fails. If the element cannot be found, the selector is rejected, the anchor is rejected,
+the action cannot be set, or verification still fails, stop repairing that page. Leave it,
+name it in the final summary as needing a hotspot placed by hand, and keep going. Do not
+try a broader selector, alternate anchor, fixed coordinates, shape replacement, or a
+second verification. Never abort the build over one element and never let one element
+consume the build.
+
+#### Scene checkpoint — before moving on
+
+After reconciliation and the bounded repair pass, save the project before reporting the
+scene complete. If Save permission is unavailable and the seller chose manual checkpoint
+mode, pause here for Ctrl+S and wait for confirmation. The progress line must say
+`checkpoint saved` (or `waiting for Ctrl+S`); a page count alone is not a checkpoint.
+
+Before starting the next scene, check the active-build clock. At 25 minutes, go to Phase 5
+with the saved scenes that exist. Do not start another scene merely because its first URL
+is already open.
 
 #### The first scene is a canary — check it before building the rest
 
@@ -574,12 +655,13 @@ same way produces three more scenes to repair. Stop and say so:
 ```text
 Scene 1 recorded 4 pages but Regale placed no beacons on any of them - I've read the
 shapes back and they're empty. Recording isn't dropping hotspots on this surface, so I'm
-switching to placing them myself for the rest of the build. It's slower, maybe another
-few minutes, and the result is the same.
+switching to placing them myself while the original 30-minute timebox remains. I may save
+fewer scenes as a result rather than run past the limit.
 ```
 
 Then use the [fallback loop](#fallback--the-explicit-capture-loop) for the remaining
-scenes, and repair scene 1's pages before moving on.
+scenes, and repair scene 1's pages before moving on, subject to the same bounded-recovery
+rule and the original 30-minute timebox.
 
 The same reasoning applies to pages: if `list_sections` shows sections with 0 or 1 pages
 where the plan had several beats, the clicks are not chaining either. Do not keep going and
@@ -624,7 +706,8 @@ fallback. **A page with no beacon is an unfinished page** — the viewer cannot 
 what you have built is a screenshot with notes attached. If a target genuinely cannot be
 found, warn, keep going, and list that page in the final summary as needing a hotspot
 placed by hand. Never abort the whole build over one element, and never continue silently
-as though the page were complete.
+as though the page were complete. The fallback does not reset the clock or recovery
+budget. One failed anchor ends work on that page.
 
 #### Where recording is known to fail
 
@@ -692,8 +775,9 @@ Then check for each of these, and state the result plainly:
 | Fewer pages than the approved plan had beats | The build stopped early. Say which scene it reached. |
 
 If any of these are true, **say so in the summary as a defect, not as a completed build.**
-Fix what is fixable first — move the misfiled pages, place the missing beacons — and report
-the rest rather than leaving the seller to discover it.
+Fix only what fits within the remaining timebox and bounded-recovery budget. Otherwise
+save and report the defect rather than leaving the seller to discover it. Phase 5 never
+extends the clock and never restarts a repair that already failed in Phase 4.
 
 ### Export readiness — clear Regale's own validator before you hand over
 
@@ -719,7 +803,7 @@ stop you.
 ```
 
 If something genuinely cannot be fixed, name it and say what the seller will see in the
-dialog, rather than letting them discover it after a fifteen-minute build.
+dialog, rather than letting them discover it after the build.
 
 If the seller says a beacon you reported is not there, do not re-argue from the tally. One
 `render_page` on that page with the objects overlay settles it in a single call, and a
@@ -727,8 +811,8 @@ disagreement about whether the demo works is worth that round trip.
 
 ### Then
 
-1. Save. If the Save permission is on, save the project. If it is off, tell the seller
-   to press Ctrl+S in Regale.
+1. Save the final checkpoint. If manual checkpoint mode is active, tell the seller to
+   press Ctrl+S in Regale and do not call the build durable until they confirm.
 2. Summarise honestly, from the self-check above rather than from memory:
    - Sections and pages created — the counts you just read back, and any empty section.
    - Hotspots: how many recording placed, how many you had to add in the repair pass, and
@@ -788,11 +872,12 @@ for one.
    tell them to drive the flow now.
 8. `end_capture`, or let `maxSeconds` stop it.
 9. `set_studio_window` with state `restore`. `end_capture` does not restore it.
-10. Frames process asynchronously. Wait, then re-query with `get_page` or
+10. Frames process asynchronously. Wait once for at most 60 seconds, then re-query with `get_page` or
     `get_open_project` before stating what was captured.
 
 If capture returns zero frames or the wrong surface, report what was actually captured
-and retry with a longer delay or a different monitor. Do not silently switch paths.
+and wait for a new explicit user message before retrying with a different monitor. Do not
+silently switch paths, extend the wait, or count the retry against the current build.
 
 ### What differs afterwards
 
