@@ -37,32 +37,34 @@ The first response must be a short status statement followed by Regale tool call
 must not be a question, prioritization prompt, or choice list.
 
 
-**Mandatory tool gates:**
+**Mandatory refinement gates:**
 
-1. Confirm `capture_view`, `set_selection`, and `remove_page` are visible. If any is
-   missing, stop and name it. Do not substitute metadata inspection, page hiding, or text
-   editing. `render_page` is not a bulk-refinement dependency.
-2. For every visible page in section/page order, use `set_selection` to select that page,
-   then `capture_view` on the Studio editor/workspace. `get_page` does not satisfy
-   visual inspection. Assign **Keep**, **Remove**, or **Review** from that screenshot.
-   Make no project-content writes until every page in the current section has a verdict.
-3. Apply clear **Remove** verdicts with `remove_page`, highest page number first. Never
-   use `update_properties` on a project, section, or page during refinement.
-4. Re-list pages, then call `get_shapes` only on retained pages whose navigation may
-   have changed. Property writes are allowed only on shapes to repair those click actions.
-5. Save each completed section. Refinement is complete only when the screenshot-verdict
-   count equals the original visible-page count. The final summary must state pages
-   inspected, pages removed with reasons, **Review** pages, and navigation verified.
-   Otherwise report a saved partial refinement and the exact resume point.
+1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Read the open
+   project's saved `.rglx` path, save once, then run the installed skill script
+   `scripts\inspect-rglx.ps1 -ProjectPath "PATH"` with the shell. This is the only shell
+   command allowed in refinement mode. It reads the package without modifying it.
+2. Read the generated `report.json` and inspect every extracted thumbnail in section/page
+   order with Copilot's local image viewer. Do not call `capture_view` or `render_page`:
+   image-returning Regale MCP calls can stall the client. Assign **Keep**, **Remove**, or
+   **Review** to every visible page before making project-content writes in that section.
+3. An exact-adjacent-duplicate flag is sufficient evidence to remove the later page unless
+   it is the only navigation source. Text signals are review leads, not automatic removal
+   decisions; confirm them in the thumbnail. Remove clear setup, modal, blocked, transient,
+   unrelated, and duplicate pages with `remove_page`, highest page number first.
+4. Re-list pages, then call `get_shapes` only on retained pages whose navigation may have
+   changed. Property writes are allowed only on shapes to repair those click actions.
+5. Save each completed section. Refinement is complete only when the verdict count equals
+   the original visible-page count. State pages inspected, removals and reasons, **Review**
+   pages, and navigation verified. Otherwise report a saved partial refinement and the
+   exact resume point.
 
-Do not call `render_page` unless one selected-page screenshot is genuinely ambiguous.
-It gets one attempt on that page only. If any visual call consumes more than 60 seconds,
-stop after it returns, save completed work, and report the stalled page rather than
-starting another visual call.
+If the project has no saved path, save it and read the path again. If the inspector or
+local image viewer is unavailable, stop and report that exact precondition; do not fall
+back to Regale screenshot calls, metadata-only editing, hiding pages, or text polishing.
 
-Forbidden in refinement mode: `set_text`, capture/recording creation tools, product
-interaction, shell commands, accessibility work, presenter-note work, section/title
-edits, and hiding pages. `capture_view` is inspection, not capture creation.
+Forbidden in refinement mode: `capture_view`, `render_page`, `set_text`, capture/recording
+creation tools, product interaction, accessibility work, presenter-note work,
+section/title edits, and hiding pages.
 
 When the user gives a product-demo brief, create a compact Regale demo-definition preview. The user does not need to say "Regale", "Regale skill", "demo generator", "surface", or provide a URL after this agent is selected.
 

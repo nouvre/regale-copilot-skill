@@ -565,9 +565,12 @@ Captured pages are raw material, not the final sequence. A successful capture ca
 contain a modal, a blank transition, or two pages showing the same useful state. Do not
 hand that sequence to the seller as "done" and make them discover the cleanup themselves.
 
-Select each newly captured page with `set_selection`, then call `capture_view` on the
-Studio editor/workspace **once**. Read those screenshots in order and compare adjacent
-pages. For each page, write an internal verdict:
+Save the project, then run this skill's read-only
+`scripts\inspect-rglx.ps1 -ProjectPath "PATH"` against the saved `.rglx` path returned by
+`get_open_project`. Read its `report.json` and inspect the extracted thumbnails in order
+with Copilot's local image viewer. Do not use `capture_view` or `render_page` for this
+bulk pass: image-returning Regale MCP calls can stall the client. For each page, write an
+internal verdict:
 
 - **Keep** — it shows a distinct, stable state required by an approved beat, or it is the
   necessary before/after state for a click.
@@ -575,7 +578,7 @@ pages. For each page, write an internal verdict:
 - **Review** — its value is ambiguous. Keep it and name it in the final summary; do not
   guess on a destructive edit.
 
-A page earns **Remove** when the rendered evidence shows any of these:
+A page earns **Remove** when the extracted-thumbnail evidence shows any of these:
 
 - A first-run, onboarding, product-tour, consent, or "what's new" dialog that is not an
   approved beat.
@@ -593,6 +596,10 @@ A page earns **Remove** when the rendered evidence shows any of these:
 Do **not** remove a page merely because it looks similar if it carries the only control
 needed for the next click, shows a meaningful before/after change, or has unique approved
 narration. When uncertain, use **Review**.
+
+The inspector's `exactAdjacentDuplicate` flag is sufficient duplicate evidence unless
+the later page is the only navigation source. Its text signals only identify pages to
+review; confirm setup, error, or blocked states in the thumbnail before removing them.
 
 Collect all clear removals first. Re-read `list_pages` once so every target comes from the
 current structure, then call `remove_page` from the highest page number to the lowest so
@@ -905,39 +912,41 @@ or its final summary.
 
 These are completion criteria, not suggestions:
 
-1. Confirm `capture_view`, `set_selection`, and `remove_page` are visible. If any is
-   missing, stop and name it. Do not substitute `get_page`, hiding, or text edits.
-   `render_page` is not a bulk-refinement dependency.
-2. For every visible page in section/page order, use `set_selection` to select it and then
-   call `capture_view` on the Studio editor/workspace. Assign **Keep**, **Remove**, or
-   **Review** from that screenshot. Make no project-content writes until every page in
-   the current section has a visual verdict.
+1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Read the saved
+   `.rglx` path from `get_open_project`, save once, then run this skill's read-only
+   `scripts\inspect-rglx.ps1 -ProjectPath "PATH"`. This inspector is the only shell command
+   allowed in refinement mode.
+2. Read its `report.json`. For every visible page in section/page order, inspect the
+   extracted thumbnail with Copilot's local image viewer and assign **Keep**, **Remove**,
+   or **Review**. Do not call `capture_view` or `render_page`: image-returning Regale MCP
+   calls can stall the client. Make no project-content writes until every page in the
+   current section has a verdict.
 3. Remove clear **Remove** pages with `remove_page`, highest page number first. Never call
    `update_properties` on a project, section, or page in refinement mode.
 4. Re-list the section, then use `get_shapes` only on retained pages whose navigation may
    have changed. Property writes are permitted only on shapes to repair those actions.
-5. Save the completed section. Do not use shell commands to wait for or inspect the save.
+5. Save the completed section. Do not use shell commands to wait for the save.
 
-The agent may say refinement is complete only when the screenshot-verdict count equals
-the original visible-page count. Its final summary must state that count, every removal and
-reason, every **Review** page, and the navigation pages verified. Zero `render_page` calls
-is valid because `capture_view` is the primary visual inspection path. Zero `capture_view`
-calls means zero visual refinement, regardless of any other edits made.
+The agent may say refinement is complete only when the thumbnail-verdict count equals the
+original visible-page count. Its final summary must state that count, every removal and
+reason, every **Review** page, and the navigation pages verified.
 
-Do not call `render_page` unless one selected-page screenshot is genuinely ambiguous. It
-gets one attempt on that page only. If any visual call consumes more than 60 seconds, stop
-after it returns, save completed work, and report the stalled page rather than starting
-another visual call.
+An `exactAdjacentDuplicate` flag is sufficient evidence to remove the later page unless
+it is the only navigation source. Inspector text signals are review leads, not automatic
+removal decisions; confirm them in the thumbnail. If the inspector or local image viewer
+is unavailable, stop and report that exact precondition. Do not fall back to Regale image
+calls, metadata-only editing, page hiding, or text polishing.
 
 Forbidden tools/actions in this mode: `get_page` as a visual substitute, `set_text`,
-capture or recording creation, product interaction, shell commands, page/section/project
-property edits, page hiding, accessibility work, presenter-note work, and title/section
-polishing. `capture_view` is inspection, not capture creation.
+`capture_view`, `render_page`, capture or recording creation, product interaction,
+page/section/project property edits, page hiding, accessibility work, presenter-note work,
+and title/section polishing. The package inspector is the only allowed shell command.
 
 1. Check Read, Edit, and Save permissions, then read `list_sections` and `list_pages`.
-2. For each section, apply the [visual refinement](#visual-refinement--every-scene-before-notes-and-beacons)
-   classification to its existing pages. Select and screenshot each page once, then remove
-   only **Remove** verdicts, from highest page number to lowest.
+2. Run the package inspector once. For each section, apply the
+   [visual refinement](#visual-refinement--every-scene-before-notes-and-beacons)
+   classification to its extracted thumbnails, then remove only **Remove** verdicts from
+   highest page number to lowest.
 3. Re-read that section once, audit advancing shapes on the pages immediately before each
    removal and on the retained sequence, and use the same bounded-recovery rule for any
    broken navigation. Do not rewrite notes or descriptions; report a now-inaccurate note

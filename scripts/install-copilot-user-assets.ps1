@@ -171,8 +171,11 @@ if (-not $agentSourceOk) {
 }
 
 $pipelineSource = Join-Path $skillSource "BUILD_PIPELINE.md"
-$skillSourceOk = (Test-Path -PathType Container $skillSource) -and (Test-Path -PathType Leaf $pipelineSource)
-Write-Check $skillSourceOk "Demo skill and BUILD_PIPELINE.md found"
+$inspectorSource = Join-Path $skillSource "scripts\inspect-rglx.ps1"
+$skillSourceOk = (Test-Path -PathType Container $skillSource) -and
+    (Test-Path -PathType Leaf $pipelineSource) -and
+    (Test-Path -PathType Leaf $inspectorSource)
+Write-Check $skillSourceOk "Demo skill, build pipeline, and refinement inspector found"
 if (-not $skillSourceOk) {
     $problems.Add("Skill files not found under: $skillSource. Re-download this repository.")
 }
@@ -293,7 +296,8 @@ if (-not $agentOk) { $failures.Add("agent file") }
 
 $pipelineTarget = Join-Path $skillTargetDir "BUILD_PIPELINE.md"
 $skillOk = (Test-Path -PathType Leaf $pipelineTarget) -and
-    (Test-Path -PathType Leaf (Join-Path $skillTargetDir "SKILL.md"))
+    (Test-Path -PathType Leaf (Join-Path $skillTargetDir "SKILL.md")) -and
+    (Test-Path -PathType Leaf (Join-Path $skillTargetDir "scripts\inspect-rglx.ps1"))
 Write-Check $skillOk "Skill installed" $skillTargetDir
 if (-not $skillOk) { $failures.Add("skill files") }
 
@@ -313,13 +317,13 @@ $refinementToolsOk = $false
 try {
     $registeredTools = @($server.tools)
     $refinementToolsOk = ($registeredTools -contains "*") -or
-        (($registeredTools -contains "capture_view") -and
-         ($registeredTools -contains "set_selection") -and
-         ($registeredTools -contains "remove_page"))
+        (($registeredTools -contains "remove_page") -and
+         ($registeredTools -contains "get_shapes") -and
+         ($registeredTools -contains "save_project"))
 } catch {
     $refinementToolsOk = $false
 }
-Write-Check $refinementToolsOk "Refinement tools registered" "capture_view, set_selection, remove_page"
+Write-Check $refinementToolsOk "Refinement tools registered" "remove_page, get_shapes, save_project"
 if (-not $refinementToolsOk) { $failures.Add("refinement tools") }
 
 if ($AllTools) {
