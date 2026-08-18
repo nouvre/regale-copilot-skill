@@ -92,7 +92,10 @@ try {
     }
 
     [xml]$projectXml = $projectXmlText
-    $pageReports = New-Object System.Collections.Generic.List[object]
+    # Windows PowerShell 5.1 can throw "Argument types do not match" when a generic
+    # List[object] is embedded in a PSCustomObject and passed to ConvertTo-Json.
+    # Page counts are small, so a native PowerShell array is the reliable choice here.
+    $pageReports = @()
     $sectionNumber = 0
 
     foreach ($section in @($projectXml.Project.Sections.Section)) {
@@ -141,7 +144,7 @@ try {
             ) -join " "
 
             $duplicateOfPrevious = $null -ne $thumbnailHash -and $thumbnailHash -eq $previousHash
-            $pageReports.Add([pscustomobject]@{
+            $pageReport = [pscustomobject]@{
                 sectionNumber = $sectionNumber
                 sectionId = [string]$section.SectionId
                 sectionTitle = [string]$section.Title
@@ -159,10 +162,11 @@ try {
                 originalUrl = [string]$page.OriginalUrl
                 htmlFileId = $htmlId
                 baselineHtmlFileId = $baselineHtmlId
-            })
+            }
+            $pageReports += $pageReport
 
             $previousHash = $thumbnailHash
-            $previousPage = $pageReports[$pageReports.Count - 1]
+            $previousPage = $pageReport
         }
     }
 
@@ -171,7 +175,7 @@ try {
         projectTitle = [string]$projectXml.Project.Title
         generatedAt = (Get-Date).ToString("o")
         pageCount = $pageReports.Count
-        pages = @($pageReports)
+        pages = [object[]]$pageReports
     }
 
     $reportPath = Join-Path $outputRoot "report.json"
