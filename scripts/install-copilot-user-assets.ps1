@@ -309,6 +309,18 @@ try {
 Write-Check $configOk "MCP config valid and points at a real bridge" $mcpConfigPath
 if (-not $configOk) { $failures.Add("MCP config") }
 
+$refinementToolsOk = $false
+try {
+    $registeredTools = @($server.tools)
+    $refinementToolsOk = ($registeredTools -contains "*") -or
+        (($registeredTools -contains "render_page") -and
+         ($registeredTools -contains "remove_page"))
+} catch {
+    $refinementToolsOk = $false
+}
+Write-Check $refinementToolsOk "Refinement tools registered" "render_page, remove_page"
+if (-not $refinementToolsOk) { $failures.Add("refinement tools") }
+
 if ($AllTools) {
     Write-Host "         Registered ALL Regale tools (-AllTools). Builds will be slower." -ForegroundColor DarkGray
 } else {

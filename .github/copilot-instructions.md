@@ -10,6 +10,50 @@ The user does not need to say "Regale", "Regale skill", "demo generator", "surfa
 
 A demo brief means: create a demo-definition preview for Regale. It does not mean: answer the brief directly.
 
+## Open-Draft Refinement
+
+When the user's trimmed message is `refine the open draft` or `refine open draft`
+(case-insensitive), do not enter definition mode and do not ask which refinement to
+prioritize. Read `.github/skills/demo/BUILD_PIPELINE.md` and immediately follow
+**Refining an already-built draft**. Do not require `confirm build`.
+
+The scope is page cleanup and resulting navigation only: remove clear setup, transient,
+error, unrelated, and adjacent-duplicate pages, then audit navigation affected by those
+removals. Do not rewrite presenter notes, add accessibility descriptions, or rebuild
+blocked scenes unless the user asks separately. If Regale tools are unavailable or no
+project is open, state that precondition instead of offering a menu.
+Missing descriptions or notes are not refinement defects: never call `set_text` in this
+mode. Do not hide an unwanted page; remove it only after a visual **Remove** verdict, or
+retain it as **Review** when uncertain. Refinement writes are limited to `remove_page`,
+navigation repair on retained pages, and `save_project`.
+Do not count, mention, or remediate description/note completeness in the refinement status
+or summary.
+The first response must be a short status statement followed by Regale tool calls; it
+must not be a question, prioritization prompt, or choice list.
+
+
+**Mandatory tool gates:**
+
+1. Confirm both `render_page` and `remove_page` are visible. If either is missing, stop
+   and name the missing tool. Do not substitute metadata inspection, page hiding, or text
+   editing.
+2. Call `render_page` once for every visible page, in section/page order, without the
+   objects overlay. `get_page` does not satisfy visual inspection. Make no writes until
+   every page in the current section has a rendered **Keep**, **Remove**, or **Review**
+   verdict.
+3. Apply clear **Remove** verdicts with `remove_page`, highest page number first. Never
+   use `update_properties` on a project, section, or page during refinement.
+4. Re-list pages, then call `get_shapes` only on retained pages whose navigation may
+   have changed. Property writes are allowed only on shapes to repair those click actions.
+5. Save each completed section. Refinement is complete only when the number of rendered
+   verdicts equals the original visible-page count. The final summary must state pages
+   rendered, pages removed with reasons, **Review** pages, and navigation verified.
+   Otherwise report a saved partial refinement and the exact resume point.
+
+Forbidden in refinement mode: `set_text`, capture/recording tools, product interaction,
+shell commands, accessibility work, presenter-note work, section/title edits, and hiding
+pages.
+
 ## Definition Mode
 
 Enter DEFINITION mode immediately.

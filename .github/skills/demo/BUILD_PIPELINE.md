@@ -891,14 +891,47 @@ If the user asks to refine a project that is already open, do not recapture it a
 make them rebuild from the original brief. Treat this as a fresh, 30-minute refinement
 task:
 
+**Refinement has a narrow write surface.** Allowed writes are `remove_page`, a property or
+shape write strictly needed to repair navigation on a retained page, and `save_project`.
+Never call `set_text`, capture/recording tools, or product-interaction tools. Missing page
+descriptions and presenter notes are not refinement defects. Never hide a page by setting
+`IsHidden`; give it a rendered **Remove** verdict and delete it, or retain it as **Review**
+when the evidence is ambiguous.
+Do not count, mention, or remediate description/note completeness in refinement progress
+or its final summary.
+
+#### Mandatory refinement gates
+
+These are completion criteria, not suggestions:
+
+1. Confirm both `render_page` and `remove_page` are visible. If either is missing, stop
+   and name it. Do not substitute `get_page`, hiding, or text edits.
+2. `render_page` every visible page once, in section/page order, without the objects
+   overlay. Assign **Keep**, **Remove**, or **Review** from the rendered image. Make no
+   writes until every page in the current section has a visual verdict.
+3. Remove clear **Remove** pages with `remove_page`, highest page number first. Never call
+   `update_properties` on a project, section, or page in refinement mode.
+4. Re-list the section, then use `get_shapes` only on retained pages whose navigation may
+   have changed. Property writes are permitted only on shapes to repair those actions.
+5. Save the completed section. Do not use shell commands to wait for or inspect the save.
+
+The agent may say refinement is complete only when the rendered-verdict count equals the
+original visible-page count. Its final summary must state that count, every removal and
+reason, every **Review** page, and the navigation pages verified. Zero `render_page` calls
+means zero visual refinement, regardless of any other edits made.
+
+Forbidden tools/actions in this mode: `get_page` as a visual substitute, `set_text`,
+capture or recording, product interaction, shell commands, page/section/project property
+edits, page hiding, accessibility work, presenter-note work, and title/section polishing.
+
 1. Check Read, Edit, and Save permissions, then read `list_sections` and `list_pages`.
 2. For each section, apply the [visual refinement](#visual-refinement--every-scene-before-notes-and-beacons)
    classification to its existing pages. Render each page once and remove only **Remove**
    verdicts, from highest page number to lowest.
 3. Re-read that section once, audit advancing shapes on the pages immediately before each
    removal and on the retained sequence, and use the same bounded-recovery rule for any
-   broken navigation. Do not rewrite notes or descriptions unless the removed page makes
-   their mapping incorrect.
+   broken navigation. Do not rewrite notes or descriptions; report a now-inaccurate note
+   as a follow-up item instead of expanding refinement scope.
 4. Save after each refined section. At the timebox, save and report the exact next section.
 5. Finish with the removal log, retained **Review** pages, navigation defects, and the
    sections not yet processed. Do not call an unprocessed section refined.
