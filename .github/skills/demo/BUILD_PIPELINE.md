@@ -93,7 +93,7 @@ after every scene for the seller to press Ctrl+S.
 
 ## Phase 0 — Say what this costs, before you start
 
-A build is roughly **20 tool calls per scene**, so a three-scene demo is 60–100 calls,
+A build with visual refinement is roughly **25 tool calls per scene**, so a three-scene demo is 75–120 calls,
 each one a separate model round trip. Do not convert that count into a confident runtime:
 call latency varies too much, and field builds have taken hours. State the 30-minute
 timebox and that the result may be a saved partial draft instead.
@@ -126,7 +126,7 @@ So ask once, up front, folded together with the Phase 1 permission check.
 ### One message, in this order
 
 ```text
-Building 3 scenes is roughly 70 Regale calls. I'm timeboxing this build to 30 minutes of
+Building 3 scenes is roughly 90 Regale calls. I'm timeboxing this build to 30 minutes of
 tool work: at that point I will save and report the exact partial result rather than keep
 retrying. I will post progress and a saved checkpoint after every scene.
 
@@ -144,7 +144,7 @@ Tell me when both are done and I'll start.
 ```
 
 The opening paragraph is **not optional garnish** — it is the phase. The numbered list is
-the cheap part. Scale the call count to the actual plan at roughly twenty calls per scene,
+the cheap part. Scale the call count to the actual plan at roughly twenty-five calls per scene,
 but do not promise a completion time. The operational promise is the stop time.
 
 Two caveats worth knowing, though you do not need to recite them:
@@ -517,16 +517,23 @@ is not optional.
    choose a *different* resolution, or to switch a scene to Responsive — and then once,
    not per scene. Keep Fixed unless you have a reason: a fixed page can be upgraded to
    Responsive afterward, but the reverse needs a recapture.
-6. **Stage the persona now, before recording starts** — `set_element_text` for a display
+6. **Clear non-story UI before recording.** Query visible `[role='dialog']`,
+   `[aria-modal='true']`, onboarding tours, coach marks, consent banners, and first-run
+   notices. If the approved beat does not explicitly demonstrate that UI, dismiss it once
+   with its normal **Got it**, **Skip**, **Not now**, or **Close** control and verify it is
+   gone. "Welcome to the new Calendar" is setup friction, not selling content. If it
+   cannot be dismissed within bounded recovery, do not record through it: skip the scene
+   and report the blocker. Never capture a dialog merely because it appeared.
+7. **Stage the persona now, before recording starts** — `set_element_text` for a display
    name, `set_element_image` for a logo or avatar. Cosmetic edits only. Never operate a
    destructive control (delete, send, purchase, permission change) on a live site.
-7. `pause_page_motion` to freeze carousels and CSS animation. This one **is** per
+8. `pause_page_motion` to freeze carousels and CSS animation. This one **is** per
    navigation — a page load resets its own animations — but skip it when the scene
    carries on from where the previous scene ended without a full navigation, and skip it
    on surfaces with nothing moving.
-8. `start_build_recording`. It returns `followClicks: true` — that is the mode that chains
+9. `start_build_recording`. It returns `followClicks: true` — that is the mode that chains
    pages.
-9. **Walk the scene's beats, one click each:**
+10. **Walk the scene's beats, one click each:**
    - Find the target with a **narrow** `list_elements` query — pass `query` and
      `kind: 'clickable'`, and keep `maxResults` small. A broad listing returns hundreds of
      elements that stay in context and slow down every later step.
@@ -535,12 +542,12 @@ is not optional.
      is only captured if it is already on the page.
    - Do **not** call `get_recording_state` between every click. It is a health check, not a
      step, and at two calls per beat it is one of the largest avoidable costs in the build.
-10. `get_recording_state` **once**, after the last beat and before stopping. Confirm
+11. `get_recording_state` **once**, after the last beat and before stopping. Confirm
     `pendingChainPageCount` has grown by roughly one per click. If it is zero or barely
     moved, the clicks did not register — stop and say so rather than recording nothing.
     Check it earlier only if you have specific reason to suspect a surface, in which case
     check after the *first* click and then leave it alone.
-11. `stop_build_recording`. Every page in the chain is imported automatically. There is no
+12. `stop_build_recording`. Every page in the chain is imported automatically. There is no
     separate capture step.
 
 #### After each scene — reconcile, do not assume
@@ -551,6 +558,56 @@ is not optional.
 too, not just a click, so a three-beat scene can produce five pages. This is expected. Map
 the narration onto the pages that exist rather than the pages you planned, and say so in
 the summary if the shape changed materially.
+
+#### Visual refinement — every scene, before notes and beacons
+
+Captured pages are raw material, not the final sequence. A successful capture can still
+contain a modal, a blank transition, or two pages showing the same useful state. Do not
+hand that sequence to the seller as "done" and make them discover the cleanup themselves.
+
+Render each newly captured page **once** without the objects overlay. Read the pages in
+order and compare adjacent pages. For each page, write an internal verdict:
+
+- **Keep** — it shows a distinct, stable state required by an approved beat, or it is the
+  necessary before/after state for a click.
+- **Remove** — it is clearly one of the artifacts below.
+- **Review** — its value is ambiguous. Keep it and name it in the final summary; do not
+  guess on a destructive edit.
+
+A page earns **Remove** when the rendered evidence shows any of these:
+
+- A first-run, onboarding, product-tour, consent, or "what's new" dialog that is not an
+  approved beat.
+- A blank, loading, skeleton, partially rendered, or post-submit/pre-result state. For a
+  prompt workflow, keep the ready prompt and the completed response; remove the empty or
+  waiting page between them.
+- An adjacent duplicate or near-duplicate with no material product-state change, unique
+  interaction, or narration. Cursor position, focus styling, animation timing, and a
+  newly drawn beacon do not make a page distinct.
+- A sign-in page, browser error, accidental navigation, or content unrelated to the
+  scene's narration and beats.
+- A page for which you cannot state a one-line audience-facing purpose tied to the
+  approved scene.
+
+Do **not** remove a page merely because it looks similar if it carries the only control
+needed for the next click, shows a meaningful before/after change, or has unique approved
+narration. When uncertain, use **Review**.
+
+Collect all clear removals first. Re-read `list_pages` once so every target comes from the
+current structure, then call `remove_page` from the highest page number to the lowest so
+renumbering cannot change a later target. Re-read `list_pages` once after the batch and
+verify the kept sequence is contiguous. Do not repeatedly render or reconsider a removed
+page. Record a short removal log, for example:
+
+```text
+Scene 2 refinement: removed page 3 (empty state between submitted prompt and completed
+response) and page 6 (exact duplicate of page 5). Kept page 8 for review (minor state
+change; purpose unclear).
+```
+
+This visual pass is required work on the current scene and takes priority over starting
+another scene. It remains subject to the 30-minute build timebox. If the timebox prevents
+the pass, save and say plainly that the last scene is captured but **not refined**.
 
 Then, in **one pass over the scene's pages**:
 
@@ -581,8 +638,8 @@ does not go in the line.
 Write all of a scene's notes together like this. Interleaving them into every page doubles
 the number of round trips for no benefit.
 
-Do not call `render_page` on each page. It costs a full round trip and an image every time,
-and `get_shapes` already tells you what is on the page.
+Do not render a kept page again during the beacon audit. The refinement render already
+established its visual state; `get_shapes` supplies the object evidence.
 
 #### Beacon audit and repair — every scene, before you move on
 
@@ -815,6 +872,8 @@ disagreement about whether the demo works is worth that round trip.
    press Ctrl+S in Regale and do not call the build durable until they confirm.
 2. Summarise honestly, from the self-check above rather than from memory:
    - Sections and pages created — the counts you just read back, and any empty section.
+   - Refinement — pages removed with reasons, every page retained for review, and any
+     scene that was captured but not visually refined before the timebox.
    - Hotspots: how many recording placed, how many you had to add in the repair pass, and
      **every** page still without one, named, with the reason.
    - Any scene skipped because it needed a desktop app or a URL that was never supplied.
@@ -825,6 +884,28 @@ disagreement about whether the demo works is worth that round trip.
    it has not been done yet — do not let it read as finished accessibility work.
 
 Do not publish. Do not offer to publish.
+
+### Refining an already-built draft
+
+If the user asks to refine a project that is already open, do not recapture it and do not
+make them rebuild from the original brief. Treat this as a fresh, 30-minute refinement
+task:
+
+1. Check Read, Edit, and Save permissions, then read `list_sections` and `list_pages`.
+2. For each section, apply the [visual refinement](#visual-refinement--every-scene-before-notes-and-beacons)
+   classification to its existing pages. Render each page once and remove only **Remove**
+   verdicts, from highest page number to lowest.
+3. Re-read that section once, audit advancing shapes on the pages immediately before each
+   removal and on the retained sequence, and use the same bounded-recovery rule for any
+   broken navigation. Do not rewrite notes or descriptions unless the removed page makes
+   their mapping incorrect.
+4. Save after each refined section. At the timebox, save and report the exact next section.
+5. Finish with the removal log, retained **Review** pages, navigation defects, and the
+   sections not yet processed. Do not call an unprocessed section refined.
+
+The user can ask in plain language, for example `refine the open draft`. This is a
+post-build task, not a definition-mode command, and it does not require `confirm build`
+again when the current conversation already built or opened the project.
 
 ---
 

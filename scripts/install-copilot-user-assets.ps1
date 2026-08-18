@@ -28,7 +28,7 @@ $ErrorActionPreference = "Stop"
 $DemoBuildTools = @(
     # Preconditions, project, and structure
     "get_agent_permissions", "get_open_project", "open_project", "new_project",
-    "save_project", "update_properties", "list_sections", "list_pages", "get_page",
+    "save_project", "update_properties", "list_sections", "list_pages", "get_page", "remove_page",
     "add_section", "set_selection", "set_text", "get_theme",
 
     # Capture profiles and sign-in
