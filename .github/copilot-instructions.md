@@ -45,8 +45,13 @@ must not be a question, prioritization prompt, or choice list.
 4. Automatically remove at most `max(1, floor(original pages * 0.25))` pages per section,
    never two consecutive pages, and never leave a multi-page section below two pages.
    Larger plans require explicit user approval.
-5. Re-list and inspect shapes on every retained page in a changed section, repair dangling
-   navigation, save, rerun the inspector, and verify the flow contract. Report the backup.
+5. For locked/theme-controlled inbound navigation, unlock and retarget the shape to the
+   retained successor and verify it **before** deletion. One failed repair makes that page
+   **Review** with no deletion or retry. Re-inspect after all verified changes.
+
+Review is a successful conservative verdict. Finish `complete with review items` when all
+pages were inspected and flow is valid; use `blocked` only when the audit or restoration
+itself cannot complete.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.
 Do not fall back to Regale image calls, metadata-only editing, page hiding, or text work.

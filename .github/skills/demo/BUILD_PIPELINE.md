@@ -612,6 +612,12 @@ If the retained path is not clear, keep the candidate as **Review**. During auto
 cleanup, remove at most `max(1, floor(original pages * 0.25))` pages, never two consecutive
 pages, and never collapse a multi-page scene below two pages.
 
+If an inbound shape has `LockActions: true` or is theme-controlled, do not delete first.
+Set `LockActions` to false on that shape instance, re-read it, retarget it to the retained
+successor by page id, and re-read it again. Only delete after every inbound target is
+verified. One failed unlock or retarget changes the candidate to **Review**; continue the
+audit without retrying or rolling back unrelated work.
+
 Collect all clear removals first. Re-read `list_pages` once so every target comes from the
 current structure, then call `remove_page` from the highest page number to the lowest so
 renumbering cannot change a later target. Re-read `list_pages` once after the batch and
@@ -945,10 +951,14 @@ These are completion criteria, not suggestions:
    `max(1, floor(original pages * 0.25))` pages; never remove two consecutive pages; and
    never reduce a multi-page section below two pages. Present any larger removal plan to
    the user and wait for explicit approval instead of applying it.
-5. Remove approved **Remove** pages highest page number first. Re-list the section, then
-   use `get_shapes` on all retained pages in that section. Repair dangling targets and
-   preserve a usable entry-to-outcome path. Never call `update_properties` on a project,
-   section, or page.
+5. Process approved **Remove** candidates highest page number first. For every inbound
+   shape, retarget it to the retained successor **before** deletion. When `LockActions` is
+   true or `isThemeControlled` is true, first set `LockActions` false on that shape
+   instance and verify the unlock; then set and verify the new page-id target. One failed
+   unlock or retarget changes the candidate to **Review** with no deletion or retry. After
+   verified retargeting, remove the candidate, re-list the section, and inspect shapes on
+   all retained pages. Never call `update_properties` on a project, section, or page;
+   shape navigation writes are the only exception.
 6. Save, rerun the inspector without `-CreateBackup`, and compare the result with the
    original report. A section passes only if its page-count floor, entry/action/outcome
    contract, build-timeline pages, and navigation targets remain intact. Otherwise stop,
@@ -958,6 +968,11 @@ The agent may say refinement is complete only when the verdict count equals the 
 visible-page count and the post-edit flow check passes. Its final summary must state that
 count, every removal and reason, every **Review** page, each section's retained
 entry/action/outcome flow, navigation verified, and the backup path.
+
+**Review is not a blocked state.** If all pages were inspected, the project remains valid,
+and unsafe candidates were retained, finish as `complete with review items`. Use `blocked`
+only when backup, inspection, restoration, or project-wide flow verification cannot
+complete.
 
 `thumbnailMatchesPrevious` is never removal evidence. `packageEquivalentToPrevious` is
 only a candidate and still requires the flow contract and removal budget. Inspector text

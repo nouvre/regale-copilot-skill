@@ -35,8 +35,7 @@ if ($CreateBackup) {
     $projectDirectory = Split-Path $projectFile -Parent
     $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
     $backupName = "$projectName.pre-refine-$stamp.rglx"
-    $documents = [Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
-    $fallbackDirectory = Join-Path $documents "Regale Backups"
+    $fallbackDirectory = Join-Path $env:LOCALAPPDATA "Regale\Backups"
     $backupPath = if ($isUncPath) {
         New-Item -ItemType Directory -Force -Path $fallbackDirectory | Out-Null
         Join-Path $fallbackDirectory $backupName
@@ -231,12 +230,16 @@ try {
                 $navigation += [pscustomobject]@{
                     shapeType = [string]$shape.LocalName
                     shapeName = Get-NodeText ($shape.SelectSingleNode("Name"))
+                    shapeId = Get-NodeText ($shape.SelectSingleNode("ShapeId"))
                     action = $action
                     target = [string]$shape.ClickActionData
+                    lockActions = ([string]$shape.LockActions -eq "true")
+                    basedOnThemeShapeId = [string]$shape.BasedOnThemeShapeId
+                    isThemeControlled = -not [string]::IsNullOrWhiteSpace([string]$shape.BasedOnThemeShapeId)
                 }
             }
             $navigationSignature = ($navigation | ForEach-Object {
-                "$($_.shapeType)|$($_.shapeName)|$($_.action)|$($_.target)"
+                "$($_.shapeType)|$($_.shapeName)|$($_.action)|$($_.target)|$($_.lockActions)|$($_.basedOnThemeShapeId)"
             }) -join ";"
 
             $searchText = @(
@@ -293,6 +296,9 @@ try {
                 navigation = [object[]]$navigation
                 navigationSignature = $navigationSignature
                 inboundNavigationCount = 0
+                inboundLockedNavigationCount = 0
+                inboundThemeNavigationCount = 0
+                inboundNavigation = [object[]]@()
                 flowCriticalReasons = [object[]]$flowCriticalReasons
                 textSignals = @(Get-TextSignals $searchText)
                 description = $description
@@ -317,8 +323,21 @@ try {
             if ($edge.action -eq "SpecificPage" -and $pagesById.ContainsKey($edge.target)) {
                 $targetPage = $pagesById[$edge.target]
                 $targetPage.inboundNavigationCount++
+                $targetPage.inboundNavigation = [object[]]@($targetPage.inboundNavigation + [pscustomobject]@{
+                    sourcePageId = $sourcePage.pageId
+                    sourcePageNumber = $sourcePage.pageNumber
+                    shapeId = $edge.shapeId
+                    shapeName = $edge.shapeName
+                    lockActions = $edge.lockActions
+                    isThemeControlled = $edge.isThemeControlled
+                })
+                if ($edge.lockActions) { $targetPage.inboundLockedNavigationCount++ }
+                if ($edge.isThemeControlled) { $targetPage.inboundThemeNavigationCount++ }
                 if ($targetPage.flowCriticalReasons -notcontains "inbound-navigation-target") {
                     $targetPage.flowCriticalReasons = [object[]]@($targetPage.flowCriticalReasons + "inbound-navigation-target")
+                }
+                if ($edge.lockActions -and $targetPage.flowCriticalReasons -notcontains "locked-inbound-navigation") {
+                    $targetPage.flowCriticalReasons = [object[]]@($targetPage.flowCriticalReasons + "locked-inbound-navigation")
                 }
             }
         }
@@ -345,6 +364,7 @@ try {
     Write-Output "Pages: $($pageReports.Count)"
     Write-Output "Matching adjacent thumbnails: $(@($pageReports | Where-Object thumbnailMatchesPrevious).Count)"
     Write-Output "Package-equivalent adjacent pages: $(@($pageReports | Where-Object packageEquivalentToPrevious).Count)"
+    Write-Output "Pages with locked inbound navigation: $(@($pageReports | Where-Object { $_.inboundLockedNavigationCount -gt 0 }).Count)"
     Write-Output "Pages with review signals: $(@($pageReports | Where-Object { $_.textSignals.Count -gt 0 }).Count)"
 } finally {
     $archive.Dispose()

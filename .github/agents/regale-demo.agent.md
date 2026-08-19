@@ -52,10 +52,18 @@ must not be a question, prioritization prompt, or choice list.
    another retained page demonstrably fulfills the same role.
 4. Automatically remove at most `max(1, floor(original pages * 0.25))` pages per section,
    never two consecutive pages, and never leave a multi-page section with fewer than two.
-   Larger plans require explicit user approval. Remove approved pages highest number first.
-5. Re-list and inspect shapes on every retained page in the changed section, repair
-   dangling navigation, save, rerun the inspector without `-CreateBackup`, and verify the
-   entry/action/outcome flow remains intact. Report the backup path and flow check.
+   Larger plans require explicit user approval. Process approved candidates highest number first.
+5. Before removing a page with locked or theme-controlled inbound navigation, unlock and
+   retarget every inbound shape to the retained successor, then re-read it. Only remove the
+   page after the new target is verified. One failed unlock/retarget makes that page
+   **Review**; do not delete it, retry it, or mark the whole refinement blocked.
+6. Re-list and inspect shapes on every retained page in the changed section, save, rerun
+   the inspector without `-CreateBackup`, and verify the entry/action/outcome flow remains
+   intact. Report the backup path and flow check.
+
+**Review is a successful conservative verdict.** Finish as `complete with review items`
+when every page was inspected and retained flow is valid. Use `blocked` only when the
+backup, inspection, restoration, or project-wide flow verification itself cannot complete.
 
 If the project has no saved path, save it and read the path again. If the inspector or
 local image viewer is unavailable, stop and report that exact precondition; do not fall
