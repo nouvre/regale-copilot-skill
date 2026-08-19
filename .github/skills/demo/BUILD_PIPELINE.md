@@ -1035,6 +1035,9 @@ frustration, urgency, or a request to remove one page.
 
 1. Save the source, then run
    `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup -CreateAggressiveCopy`.
+   Before running it, reject a source whose filename contains `.aggressive-refine-` or
+   whose parent is `Regale\Aggressive Refinements`. Tell the user to reopen the original
+   project. Never create an aggressive copy from an earlier aggressive copy.
 2. Verify `backupPath` and `aggressiveCopyPath` exist. Record `projectPath` as immutable,
    open `aggressiveCopyPath` with Regale, and confirm that exact copy is active before any
    write. Abort if the active path is still the source.
@@ -1044,12 +1047,20 @@ frustration, urgency, or a request to remove one page.
    timeline, click, or narration is not audience value by itself: it does not protect a
    confirmed onboarding page, a request-to-result intermediate state that communicates
    nothing, or a visually redundant adjacent frame when the retained neighbors still
-   provide the action and outcome.
+   provide the action and outcome. In aggressive mode, an exact adjacent thumbnail match
+   is **Remove** unless it is the only page in the section or objective final-state
+   evidence proves a distinct visible outcome. A different timeline, click, narration, or
+   claimed outcome role is not objective final-state evidence. An in-flight loading or
+   generating page between a request and stable response is **Remove** unless its
+   thumbnail communicates a unique audience-facing fact; retarget the request action
+   directly to the response.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one
-   visible page in every section. If a section has no audience-facing outcome, retain that
-   section as **Review** rather than deleting arbitrary pages and leaving a false story.
+   visible page in every section. A missing audience-facing outcome does not protect an
+   unrelated confirmed onboarding, duplicate, or valueless intermediate page when removal
+   does not worsen that gap. Do not delete other pages merely because the section is
+   incomplete; retain the outcome gap as **Review**.
 5. Save and re-inspect the copy. Recheck every original defect-ledger entry and report it
    as removed or retained with a concrete reason. Do not roll back to or overwrite the
    source. Finish with

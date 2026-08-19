@@ -27,6 +27,12 @@ if ([string]::IsNullOrWhiteSpace($projectFile)) {
 $isUncPath = $projectFile.StartsWith("\\")
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
+if ($CreateAggressiveCopy -and (
+    $projectName -match "\.aggressive-refine-\d{8}-\d{6}" -or
+    (Split-Path $projectFile -Parent) -like "*\Regale\Aggressive Refinements"
+)) {
+    throw "The open project is already an aggressive refinement copy. Open the original source project before starting another aggressive refinement."
+}
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path $env:TEMP "regale-refinement-$stamp"
 }

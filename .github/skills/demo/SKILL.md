@@ -80,15 +80,24 @@ backup, inspection, restoration, or project-wide flow verification itself cannot
 **Aggressive mode overrides only the conservative deletion limits.** Run the inspector
 with both `-CreateBackup` and `-CreateAggressiveCopy`, verify both paths, then open the
 reported `aggressiveCopyPath` and confirm it is the active project before writes. Never
-save changes to `projectPath`. Still require visual evidence; matching thumbnails alone
-remain insufficient. Attempt each navigation repair once, but after a failed repair the
+save changes to `projectPath`. If the open filename already contains
+`.aggressive-refine-` or is inside `Regale\Aggressive Refinements`, stop and tell the user
+to open the original; never create a copy of a copy. Still require visual evidence.
+An exact adjacent thumbnail match is **Remove** by default in aggressive mode unless it is
+the only page in the section or objective final-state evidence proves a distinct visible
+outcome; a different timeline or claimed outcome role is not such evidence. A loading,
+generating, or other in-flight page between a request and its stable response is also
+**Remove** unless its thumbnail communicates a unique audience-facing fact; the click can
+navigate directly from request to response. Attempt each navigation repair once, but after a failed repair the
 explicit aggressive selection permits deletion in the copy. Consecutive removals and the
 25-percent limit are waived. Resolve the defect ledger before considering other cleanup.
 A unique timeline or narration does not preserve a confirmed onboarding page, valueless
 intermediate state, or visually redundant frame when the retained predecessor/successor
-still supplies the action and outcome. Conversely, if a section has no audience-facing
-outcome, retain the section as **Review** rather than shortening it into a false or broken
-story; retain at least one visible page per section. Reinspect every ledger item after
+still supplies the action and outcome. A missing section outcome does not protect an
+unrelated confirmed onboarding, duplicate, or valueless intermediate page when its
+removal does not worsen the outcome gap. Do not remove other pages merely because the
+section is incomplete; mark that gap **Review**. Retain at least one visible page per
+section. Reinspect every ledger item after
 edits and state whether it was removed or retained and why. Finish as
 `aggressive copy created - repair required`, list every known broken or missing navigation
 edge, state that the exact `aggressiveCopyPath` is the project currently open in Regale,

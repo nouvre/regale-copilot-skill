@@ -50,12 +50,19 @@ pages were inspected and flow is valid; use `blocked` only when the audit or res
 itself cannot complete.
 
 In aggressive mode, create and open the inspector's `aggressiveCopyPath`; never modify the
-original. Visual evidence is still required, but deletion limits and failed-navigation
+original. Refuse an open project whose filename contains `.aggressive-refine-` or whose
+path is inside `Regale\Aggressive Refinements`; the user must reopen the original before
+another run. Visual evidence is still required, but deletion limits and failed-navigation
 protection are waived in the copy. Resolve the defect ledger before unrelated cleanup.
+In aggressive mode, an exact adjacent thumbnail match is **Remove** unless objective
+final-state evidence proves a distinct visible outcome; timeline data or a claimed outcome
+role alone is insufficient. Remove an in-flight page between a request and stable response
+unless its thumbnail communicates a unique audience-facing fact.
 Unique timeline data does not protect a confirmed onboarding, valueless intermediate, or
-visually redundant page when its neighbors retain the action and outcome. If a section has
-no audience-facing outcome, retain it as **Review** instead of shortening it into a false
-story. Reinspect every ledger item, retain one visible page per section, list all broken
+visually redundant page when its neighbors retain the action and outcome. A missing
+section outcome does not protect unrelated confirmed junk when removal does not worsen
+that gap; retain the gap as **Review** and do not delete other pages merely because the
+section is incomplete. Reinspect every ledger item, retain one visible page per section, list all broken
 navigation, identify `aggressiveCopyPath` as the project currently open in Regale, label
 the copy not presentation-ready, and never publish it.
 
