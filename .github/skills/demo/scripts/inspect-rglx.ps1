@@ -278,6 +278,8 @@ try {
                 (Convert-HtmlToText $baselineHtml)
             ) -join " "
 
+            $textSignals = @(Get-TextSignals $searchText)
+
             $thumbnailMatchesPrevious = $null -ne $thumbnailHash -and $thumbnailHash -eq $previousHash
             $htmlHash = Get-StringSha256 $html
             $baselineHtmlHash = Get-StringSha256 $baselineHtml
@@ -304,6 +306,25 @@ try {
             if ($navigation.Count -gt 0) { $flowCriticalReasons += "outbound-navigation" }
             if (-not [string]::IsNullOrWhiteSpace($presenterNotes)) { $flowCriticalReasons += "presenter-narration" }
 
+            $qualityReviewReasons = @()
+            if ($thumbnailMatchesPrevious) {
+                $qualityReviewReasons += "adjacent-exact-thumbnail-match"
+            }
+            if (@($textSignals | Where-Object {
+                $_ -match "welcome to (the )?new|first[- ]run|get started|sign in"
+            }).Count -gt 0) {
+                $qualityReviewReasons += "onboarding-or-setup-text"
+            }
+            if (@($textSignals | Where-Object {
+                $_ -match "access denied|something went wrong|no matching|no results|not found|blocked|error"
+            }).Count -gt 0) {
+                $qualityReviewReasons += "blocked-or-error-text"
+            }
+
+            $nextPage = @($orderedPages | Where-Object {
+                [int]$_.Index -gt $pageNumber
+            } | Select-Object -First 1)
+
             $pageReport = [pscustomobject]@{
                 sectionNumber = $sectionNumber
                 sectionId = [string]$section.SectionId
@@ -317,6 +338,10 @@ try {
                 packageEquivalentToPrevious = $packageEquivalentToPrevious
                 previousPageId = if ($thumbnailMatchesPrevious) { $previousPage.pageId } else { $null }
                 previousPageNumber = if ($thumbnailMatchesPrevious) { $previousPage.pageNumber } else { $null }
+                sequencePreviousPageId = if ($null -ne $previousPage) { $previousPage.pageId } else { $null }
+                sequencePreviousPageNumber = if ($null -ne $previousPage) { $previousPage.pageNumber } else { $null }
+                nextPageId = if ($nextPage.Count -gt 0) { [string]$nextPage[0].PageId } else { $null }
+                nextPageNumber = if ($nextPage.Count -gt 0) { [int]$nextPage[0].Index } else { $null }
                 htmlSha256 = $htmlHash
                 baselineHtmlSha256 = $baselineHtmlHash
                 hasBuildTimeline = -not [string]::IsNullOrWhiteSpace($timelineId)
@@ -329,7 +354,8 @@ try {
                 inboundThemeNavigationCount = 0
                 inboundNavigation = [object[]]@()
                 flowCriticalReasons = [object[]]$flowCriticalReasons
-                textSignals = @(Get-TextSignals $searchText)
+                textSignals = [object[]]$textSignals
+                qualityReviewReasons = [object[]]$qualityReviewReasons
                 description = $description
                 presenterNotes = $presenterNotes
                 originalUrl = [string]$page.OriginalUrl
@@ -395,6 +421,7 @@ try {
     Write-Output "Pages: $($pageReports.Count)"
     Write-Output "Matching adjacent thumbnails: $(@($pageReports | Where-Object thumbnailMatchesPrevious).Count)"
     Write-Output "Package-equivalent adjacent pages: $(@($pageReports | Where-Object packageEquivalentToPrevious).Count)"
+    Write-Output "Presentation-quality review candidates: $(@($pageReports | Where-Object { $_.qualityReviewReasons.Count -gt 0 }).Count)"
     Write-Output "Pages with locked inbound navigation: $(@($pageReports | Where-Object { $_.inboundLockedNavigationCount -gt 0 }).Count)"
     Write-Output "Pages with review signals: $(@($pageReports | Where-Object { $_.textSignals.Count -gt 0 }).Count)"
 } finally {

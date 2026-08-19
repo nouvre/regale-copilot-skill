@@ -53,7 +53,11 @@ Regale tool calls.
 2. Inspect every thumbnail as a starting frame, not the whole page. Also read its build
    timeline, HTML/baseline fingerprints, narration, and navigation roles. A matching
    thumbnail is never removal evidence. Assign **Keep**, **Remove**, or **Review** to every
-   visible page before writes. Do not call `capture_view` or `render_page`.
+   visible page before writes. Review every consecutive predecessor/current/successor
+   trio and create a defect ledger for onboarding dialogs, setup or sign-in states,
+   request-to-result intermediate states with no audience value, and adjacent frames with
+   no meaningful visible progression. Record exact section/page ids and the retained
+   predecessor/successor for every candidate. Do not call `capture_view` or `render_page`.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
    If all three cannot be identified, make no deletions in that section. Preserve build
    timelines, navigation sources/targets, entry/outcome pages, and unique narration unless
@@ -79,9 +83,16 @@ reported `aggressiveCopyPath` and confirm it is the active project before writes
 save changes to `projectPath`. Still require visual evidence; matching thumbnails alone
 remain insufficient. Attempt each navigation repair once, but after a failed repair the
 explicit aggressive selection permits deletion in the copy. Consecutive removals and the
-25-percent limit are waived, but retain at least one visible page per section. Finish as
+25-percent limit are waived. Resolve the defect ledger before considering other cleanup.
+A unique timeline or narration does not preserve a confirmed onboarding page, valueless
+intermediate state, or visually redundant frame when the retained predecessor/successor
+still supplies the action and outcome. Conversely, if a section has no audience-facing
+outcome, retain the section as **Review** rather than shortening it into a false or broken
+story; retain at least one visible page per section. Reinspect every ledger item after
+edits and state whether it was removed or retained and why. Finish as
 `aggressive copy created - repair required`, list every known broken or missing navigation
-edge, and state that the copy is not presentation-ready. Never publish it.
+edge, state that the exact `aggressiveCopyPath` is the project currently open in Regale,
+and state that the copy is not presentation-ready. Never publish it.
 
 If the project has no saved path, save it and read the path again. If the inspector or
 local image viewer is unavailable, stop and report that exact precondition; do not fall

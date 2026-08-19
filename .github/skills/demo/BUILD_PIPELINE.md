@@ -954,8 +954,15 @@ list below; continue at **Aggressive cleanup in a copy**.
 2. Read its `report.json`. For every visible page in section/page order, inspect the
    extracted thumbnail as its **starting frame**, then read its build-timeline flag,
    baseline/current HTML fingerprints, narration, incoming targets, and outgoing actions.
-   Assign **Keep**, **Remove**, or **Review**. A matching thumbnail is never sufficient
-   removal evidence. Do not call `capture_view` or `render_page`.
+   Assign **Keep**, **Remove**, or **Review**. Review every consecutive
+   predecessor/current/successor trio and create a defect ledger before any write. The
+   ledger must include every onboarding or first-run dialog, setup/sign-in screen,
+   request-to-result intermediate state with no audience-facing value, blocked/error
+   state, and adjacent frame with no meaningful visible progression. Record its exact
+   section/page ids, evidence, and intended retained predecessor/successor. A matching
+   thumbnail is never sufficient removal evidence, but an exact match plus the absence of
+   a distinct visible story role is strong duplicate evidence. Do not call `capture_view`
+   or `render_page`.
 3. Before writes, state an internal flow contract for every section: its entry state, at
    least one retained action/transition, and its audience-facing outcome. If those three
    roles cannot be identified, make no deletions in that section and mark it **Review**.
@@ -1032,15 +1039,24 @@ frustration, urgency, or a request to remove one page.
    open `aggressiveCopyPath` with Regale, and confirm that exact copy is active before any
    write. Abort if the active path is still the source.
 3. Perform the same full visual and package inspection. Aggressive does not permit removal
-   based only on matching thumbnails or vague suspicion.
+   based only on matching thumbnails or vague suspicion. Build the defect ledger before
+   edits and resolve those candidates before considering unrelated cleanup. A distinct
+   timeline, click, or narration is not audience value by itself: it does not protect a
+   confirmed onboarding page, a request-to-result intermediate state that communicates
+   nothing, or a visually redundant adjacent frame when the retained neighbors still
+   provide the action and outcome.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one
-   visible page in every section.
-5. Save and re-inspect the copy. Do not roll back to or overwrite the source. Finish with
+   visible page in every section. If a section has no audience-facing outcome, retain that
+   section as **Review** rather than deleting arbitrary pages and leaving a false story.
+5. Save and re-inspect the copy. Recheck every original defect-ledger entry and report it
+   as removed or retained with a concrete reason. Do not roll back to or overwrite the
+   source. Finish with
    `aggressive copy created - repair required`, the source path, copy path, backup path,
    removals, retained Review pages, and every broken/dangling navigation edge. State that
-   the copy is not presentation-ready. Do not publish it.
+   the exact copy path is the project currently open in Regale and that the copy is not
+   presentation-ready. Do not publish it.
 
 ---
 

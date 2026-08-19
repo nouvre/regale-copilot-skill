@@ -32,6 +32,9 @@ that concrete precondition. Otherwise start with a short status statement and to
    unless the report contains an existing `backupPath`.
 2. Treat each thumbnail as a starting frame. Also inspect its build timeline, HTML state,
    narration, and navigation roles. Matching thumbnails are never removal evidence.
+   Review each predecessor/current/successor trio and make a defect ledger for onboarding,
+   setup/sign-in, valueless intermediate, and visibly redundant adjacent states. Record
+   the section/page ids and retained predecessor/successor for each candidate.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
    Preserve build timelines, navigation sources/targets, and unique narration unless
    another retained page fulfills the same role.
@@ -48,8 +51,13 @@ itself cannot complete.
 
 In aggressive mode, create and open the inspector's `aggressiveCopyPath`; never modify the
 original. Visual evidence is still required, but deletion limits and failed-navigation
-protection are waived in the copy. Retain one visible page per section, list all broken
-navigation, label the copy not presentation-ready, and never publish it.
+protection are waived in the copy. Resolve the defect ledger before unrelated cleanup.
+Unique timeline data does not protect a confirmed onboarding, valueless intermediate, or
+visually redundant page when its neighbors retain the action and outcome. If a section has
+no audience-facing outcome, retain it as **Review** instead of shortening it into a false
+story. Reinspect every ledger item, retain one visible page per section, list all broken
+navigation, identify `aggressiveCopyPath` as the project currently open in Regale, label
+the copy not presentation-ready, and never publish it.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.
 Do not fall back to Regale image calls, metadata-only editing, page hiding, or text work.
