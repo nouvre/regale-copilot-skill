@@ -13,7 +13,12 @@ if (-not (Test-Path -LiteralPath $ProjectPath -PathType Leaf)) {
     throw "Regale project not found: $ProjectPath"
 }
 
-$projectFile = (Resolve-Path -LiteralPath $ProjectPath).Path
+$resolvedProjectPath = Resolve-Path -LiteralPath $ProjectPath
+$projectFile = [string]$resolvedProjectPath.ProviderPath
+if ([string]::IsNullOrWhiteSpace($projectFile)) {
+    $projectFile = [string]$resolvedProjectPath.Path
+}
+$isUncPath = $projectFile.StartsWith("\\")
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path $env:TEMP "regale-refinement-$stamp"
@@ -30,13 +35,18 @@ if ($CreateBackup) {
     $projectDirectory = Split-Path $projectFile -Parent
     $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
     $backupName = "$projectName.pre-refine-$stamp.rglx"
-    $backupPath = Join-Path $projectDirectory $backupName
+    $documents = [Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
+    $fallbackDirectory = Join-Path $documents "Regale Backups"
+    $backupPath = if ($isUncPath) {
+        New-Item -ItemType Directory -Force -Path $fallbackDirectory | Out-Null
+        Join-Path $fallbackDirectory $backupName
+    } else {
+        Join-Path $projectDirectory $backupName
+    }
 
     try {
         Copy-Item -LiteralPath $projectFile -Destination $backupPath -ErrorAction Stop
     } catch {
-        $documents = [Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
-        $fallbackDirectory = Join-Path $documents "Regale Backups"
         New-Item -ItemType Directory -Force -Path $fallbackDirectory | Out-Null
         $backupPath = Join-Path $fallbackDirectory $backupName
         Copy-Item -LiteralPath $projectFile -Destination $backupPath -ErrorAction Stop
@@ -57,6 +67,19 @@ if ($CreateBackup) {
         }
     } finally {
         $backupArchive.Dispose()
+    }
+}
+
+# Some UNC providers, including Parallels' \\Mac\... shares, allow PowerShell copies but
+# reject .NET ZipFile random access. Normal local Windows paths are inspected directly.
+$inspectionFile = $projectFile
+if ($isUncPath) {
+    $inspectionFile = Join-Path $outputRoot "project-snapshot.rglx"
+    Copy-Item -LiteralPath $projectFile -Destination $inspectionFile -Force -ErrorAction Stop
+    $sourceLength = (Get-Item -LiteralPath $projectFile).Length
+    $inspectionLength = (Get-Item -LiteralPath $inspectionFile).Length
+    if ($sourceLength -ne $inspectionLength) {
+        throw "Local inspection snapshot size does not match the source project."
     }
 }
 
@@ -134,7 +157,7 @@ function Get-NodeText {
     return [regex]::Replace([string]$Node.InnerText, "\s+", " ").Trim()
 }
 
-$archive = [System.IO.Compression.ZipFile]::OpenRead($projectFile)
+$archive = [System.IO.Compression.ZipFile]::OpenRead($inspectionFile)
 try {
     $projectXmlText = Get-ZipEntryText -Archive $archive -EntryName "Project.xml"
     if ([string]::IsNullOrWhiteSpace($projectXmlText)) {
@@ -303,6 +326,7 @@ try {
 
     $report = [pscustomobject]@{
         projectPath = $projectFile
+        inspectionPath = $inspectionFile
         backupPath = $backupPath
         projectTitle = [string]$projectXml.Project.Title
         generatedAt = (Get-Date).ToString("o")
