@@ -568,9 +568,11 @@ hand that sequence to the seller as "done" and make them discover the cleanup th
 Save the project, then run this skill's read-only
 `scripts\inspect-rglx.ps1 -ProjectPath "PATH"` against the saved `.rglx` path returned by
 `get_open_project`. Read its `report.json` and inspect the extracted thumbnails in order
-with Copilot's local image viewer. Do not use `capture_view` or `render_page` for this
-bulk pass: image-returning Regale MCP calls can stall the client. For each page, write an
-internal verdict:
+with Copilot's local image viewer. Treat the thumbnail as the page's starting frame, not
+the whole page: also inspect `hasBuildTimeline`, HTML/baseline fingerprints, narration,
+and navigation edges. Do not use `capture_view` or `render_page` for this bulk pass:
+image-returning Regale MCP calls can stall the client. For each page, write an internal
+verdict:
 
 - **Keep** — it shows a distinct, stable state required by an approved beat, or it is the
   necessary before/after state for a click.
@@ -585,9 +587,9 @@ A page earns **Remove** when the extracted-thumbnail evidence shows any of these
 - A blank, loading, skeleton, partially rendered, or post-submit/pre-result state. For a
   prompt workflow, keep the ready prompt and the completed response; remove the empty or
   waiting page between them.
-- An adjacent duplicate or near-duplicate with no material product-state change, unique
-  interaction, or narration. Cursor position, focus styling, animation timing, and a
-  newly drawn beacon do not make a page distinct.
+- A package-equivalent adjacent duplicate with no distinct HTML end state, build timeline,
+  interaction, navigation role, or narration. Matching thumbnails alone are not duplicate
+  evidence because two pages can start alike and play different builds.
 - A sign-in page, browser error, accidental navigation, or content unrelated to the
   scene's narration and beats.
 - A page for which you cannot state a one-line audience-facing purpose tied to the
@@ -597,9 +599,18 @@ Do **not** remove a page merely because it looks similar if it carries the only 
 needed for the next click, shows a meaningful before/after change, or has unique approved
 narration. When uncertain, use **Review**.
 
-The inspector's `exactAdjacentDuplicate` flag is sufficient duplicate evidence unless
-the later page is the only navigation source. Its text signals only identify pages to
-review; confirm setup, error, or blocked states in the thumbnail before removing them.
+The inspector's `thumbnailMatchesPrevious` flag is only a comparison lead. Even
+`packageEquivalentToPrevious` still requires a flow-role check before removal. Preserve
+section entry and outcome pages, build-timeline pages, navigation sources and targets, and
+unique narration unless the page is a confirmed artifact and its flow role is repaired.
+Text signals only identify pages to review; confirm setup, error, or blocked states in the
+thumbnail before removing them.
+
+Before deleting, identify the scene's retained entry, action/transition, and outcome. Call
+`get_shapes` on each candidate, its predecessor and successor, and any page targeting it.
+If the retained path is not clear, keep the candidate as **Review**. During automatic
+cleanup, remove at most `max(1, floor(original pages * 0.25))` pages, never two consecutive
+pages, and never collapse a multi-page scene below two pages.
 
 Collect all clear removals first. Re-read `list_pages` once so every target comes from the
 current structure, then call `remove_page` from the highest page number to the lowest so
@@ -913,29 +924,46 @@ or its final summary.
 These are completion criteria, not suggestions:
 
 1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Read the saved
-   `.rglx` path from `get_open_project`, save once, then run this skill's read-only
-   `scripts\inspect-rglx.ps1 -ProjectPath "PATH"`. This inspector is the only shell command
-   allowed in refinement mode.
+   `.rglx` path from `get_open_project`, save once, then run
+   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. The inspector is the only
+   shell command allowed in refinement mode. Do not remove anything unless `backupPath`
+   exists in `report.json`; include that path in the final summary.
 2. Read its `report.json`. For every visible page in section/page order, inspect the
-   extracted thumbnail with Copilot's local image viewer and assign **Keep**, **Remove**,
-   or **Review**. Do not call `capture_view` or `render_page`: image-returning Regale MCP
-   calls can stall the client. Make no project-content writes until every page in the
-   current section has a verdict.
-3. Remove clear **Remove** pages with `remove_page`, highest page number first. Never call
-   `update_properties` on a project, section, or page in refinement mode.
-4. Re-list the section, then use `get_shapes` only on retained pages whose navigation may
-   have changed. Property writes are permitted only on shapes to repair those actions.
-5. Save the completed section. Do not use shell commands to wait for the save.
+   extracted thumbnail as its **starting frame**, then read its build-timeline flag,
+   baseline/current HTML fingerprints, narration, incoming targets, and outgoing actions.
+   Assign **Keep**, **Remove**, or **Review**. A matching thumbnail is never sufficient
+   removal evidence. Do not call `capture_view` or `render_page`.
+3. Before writes, state an internal flow contract for every section: its entry state, at
+   least one retained action/transition, and its audience-facing outcome. If those three
+   roles cannot be identified, make no deletions in that section and mark it **Review**.
+   Preserve pages carrying `build-timeline`, `inbound-navigation-target`,
+   `outbound-navigation`, `section-entry`, `section-outcome`, or unique narration unless
+   a confirmed artifact can be removed while another retained page fulfills that role.
+   Before approving a candidate, call `get_shapes` on it, its predecessor and successor,
+   and every page targeting it.
+4. Enforce the automatic-removal budget per section: at most
+   `max(1, floor(original pages * 0.25))` pages; never remove two consecutive pages; and
+   never reduce a multi-page section below two pages. Present any larger removal plan to
+   the user and wait for explicit approval instead of applying it.
+5. Remove approved **Remove** pages highest page number first. Re-list the section, then
+   use `get_shapes` on all retained pages in that section. Repair dangling targets and
+   preserve a usable entry-to-outcome path. Never call `update_properties` on a project,
+   section, or page.
+6. Save, rerun the inspector without `-CreateBackup`, and compare the result with the
+   original report. A section passes only if its page-count floor, entry/action/outcome
+   contract, build-timeline pages, and navigation targets remain intact. Otherwise stop,
+   identify the backup, and do not call refinement complete.
 
-The agent may say refinement is complete only when the thumbnail-verdict count equals the
-original visible-page count. Its final summary must state that count, every removal and
-reason, every **Review** page, and the navigation pages verified.
+The agent may say refinement is complete only when the verdict count equals the original
+visible-page count and the post-edit flow check passes. Its final summary must state that
+count, every removal and reason, every **Review** page, each section's retained
+entry/action/outcome flow, navigation verified, and the backup path.
 
-An `exactAdjacentDuplicate` flag is sufficient evidence to remove the later page unless
-it is the only navigation source. Inspector text signals are review leads, not automatic
-removal decisions; confirm them in the thumbnail. If the inspector or local image viewer
-is unavailable, stop and report that exact precondition. Do not fall back to Regale image
-calls, metadata-only editing, page hiding, or text polishing.
+`thumbnailMatchesPrevious` is never removal evidence. `packageEquivalentToPrevious` is
+only a candidate and still requires the flow contract and removal budget. Inspector text
+signals are review leads, not automatic removal decisions. If the inspector or local
+image viewer is unavailable, stop and report that exact precondition. Do not fall back to
+Regale image calls, metadata-only editing, page hiding, or text polishing.
 
 Forbidden tools/actions in this mode: `get_page` as a visual substitute, `set_text`,
 `capture_view`, `render_page`, capture or recording creation, product interaction,
@@ -943,7 +971,7 @@ page/section/project property edits, page hiding, accessibility work, presenter-
 and title/section polishing. The package inspector is the only allowed shell command.
 
 1. Check Read, Edit, and Save permissions, then read `list_sections` and `list_pages`.
-2. Run the package inspector once. For each section, apply the
+2. Run the package inspector with `-CreateBackup`. For each section, apply the
    [visual refinement](#visual-refinement--every-scene-before-notes-and-beacons)
    classification to its extracted thumbnails, then remove only **Remove** verdicts from
    highest page number to lowest.
@@ -951,9 +979,11 @@ and title/section polishing. The package inspector is the only allowed shell com
    removal and on the retained sequence, and use the same bounded-recovery rule for any
    broken navigation. Do not rewrite notes or descriptions; report a now-inaccurate note
    as a follow-up item instead of expanding refinement scope.
-4. Save after each refined section. At the timebox, save and report the exact next section.
-5. Finish with the removal log, retained **Review** pages, navigation defects, and the
-   sections not yet processed. Do not call an unprocessed section refined.
+4. Save and re-inspect after each refined section. At the timebox, save and report the
+   exact next section.
+5. Finish with the removal log, retained **Review** pages, per-section flow contracts,
+   navigation defects, backup path, and sections not yet processed. Do not call an
+   unprocessed or flow-invalid section refined.
 
 The user can ask in plain language, for example `refine the open draft`. This is a
 post-build task, not a definition-mode command, and it does not require `confirm build`

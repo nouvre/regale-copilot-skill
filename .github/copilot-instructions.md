@@ -18,8 +18,8 @@ prioritize. Read `.github/skills/demo/BUILD_PIPELINE.md` and immediately follow
 **Refining an already-built draft**. Do not require `confirm build`.
 
 The scope is page cleanup and resulting navigation only: remove clear setup, transient,
-error, unrelated, and adjacent-duplicate pages, then audit navigation affected by those
-removals. Do not rewrite presenter notes, add accessibility descriptions, or rebuild
+error, unrelated, and package-equivalent duplicate pages, then verify the retained demo
+flow. Do not rewrite presenter notes, add accessibility descriptions, or rebuild
 blocked scenes unless the user asks separately. If Regale tools are unavailable or no
 project is open, state that precondition instead of offering a menu.
 Missing descriptions or notes are not refinement defects: never call `set_text` in this
@@ -34,21 +34,19 @@ must not be a question, prioritization prompt, or choice list.
 
 **Mandatory refinement gates:**
 
-1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Save the open
-   project, then run the demo skill's read-only
-   `scripts\inspect-rglx.ps1 -ProjectPath "PATH"` against its saved `.rglx` path. This is
-   the only shell command allowed in refinement mode.
-2. Read `report.json` and inspect every extracted thumbnail in section/page order with
-   Copilot's local image viewer. Do not call `capture_view` or `render_page`; those
-   image-returning Regale MCP calls can stall the client. Assign **Keep**, **Remove**, or
-   **Review** to every visible page before writing project content in that section.
-3. Treat an exact adjacent duplicate as removal evidence unless it is the only navigation
-   source. Confirm text-signal leads in the thumbnail. Remove clear setup, modal, blocked,
-   transient, unrelated, and duplicate pages highest page number first.
-4. Re-list pages and inspect shapes only where removal may affect navigation. Limit
-   property writes to navigation repair on retained shapes.
-5. Save each completed section. State pages inspected, removals and reasons, **Review**
-   pages, and navigation verified. Otherwise report a saved partial and its resume point.
+1. Save the open project, then run
+   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. Do not remove anything
+   unless the report contains an existing `backupPath`.
+2. Treat each thumbnail as a starting frame. Also inspect its build timeline, HTML state,
+   narration, and navigation roles. Matching thumbnails are never removal evidence.
+3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
+   Preserve build timelines, navigation sources/targets, and unique narration unless
+   another retained page fulfills the same role.
+4. Automatically remove at most `max(1, floor(original pages * 0.25))` pages per section,
+   never two consecutive pages, and never leave a multi-page section below two pages.
+   Larger plans require explicit user approval.
+5. Re-list and inspect shapes on every retained page in a changed section, repair dangling
+   navigation, save, rerun the inspector, and verify the flow contract. Report the backup.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.
 Do not fall back to Regale image calls, metadata-only editing, page hiding, or text work.

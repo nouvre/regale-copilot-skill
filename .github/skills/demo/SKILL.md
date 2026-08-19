@@ -19,8 +19,8 @@ prioritize, or require `confirm build`.
 
 Read `BUILD_PIPELINE.md`, in this skill's folder, and immediately follow **Refining an
 already-built draft**. The scope is page cleanup and resulting navigation only: remove
-clear setup, transient, error, unrelated, and adjacent-duplicate pages, then audit
-navigation affected by those removals. Do not rewrite presenter notes, add accessibility
+clear setup, transient, error, unrelated, and package-equivalent duplicate pages, then
+verify the retained demo flow. Do not rewrite presenter notes, add accessibility
 descriptions, or rebuild blocked scenes unless the user asks separately. If Regale tools
 are unavailable or no project is open, state that precondition instead of offering a menu.
 Missing descriptions or notes are not refinement defects: never call `set_text` in this
@@ -35,24 +35,23 @@ must not be a question, prioritization prompt, or choice list.
 
 **Mandatory refinement gates:**
 
-1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Read the open
-   project's saved `.rglx` path, save once, then run this skill's
-   `scripts\inspect-rglx.ps1 -ProjectPath "PATH"` with the shell. This is the only shell
-   command allowed in refinement mode. It reads the package without modifying it.
-2. Read the generated `report.json` and inspect every extracted thumbnail in section/page
-   order with Copilot's local image viewer. Do not call `capture_view` or `render_page`:
-   image-returning Regale MCP calls can stall the client. Assign **Keep**, **Remove**, or
-   **Review** to every visible page before making project-content writes in that section.
-3. An exact-adjacent-duplicate flag is sufficient evidence to remove the later page unless
-   it is the only navigation source. Text signals are review leads, not automatic removal
-   decisions; confirm them in the thumbnail. Remove clear setup, modal, blocked, transient,
-   unrelated, and duplicate pages with `remove_page`, highest page number first.
-4. Re-list pages, then call `get_shapes` only on retained pages whose navigation may have
-   changed. Property writes are allowed only on shapes to repair those click actions.
-5. Save each completed section. Refinement is complete only when the verdict count equals
-   the original visible-page count. State pages inspected, removals and reasons, **Review**
-   pages, and navigation verified. Otherwise report a saved partial refinement and the
-   exact resume point.
+1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Save once, then run
+   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. Do not remove anything
+   unless the report contains an existing `backupPath`.
+2. Inspect every thumbnail as a starting frame, not the whole page. Also read its build
+   timeline, HTML/baseline fingerprints, narration, and navigation roles. A matching
+   thumbnail is never removal evidence. Assign **Keep**, **Remove**, or **Review** to every
+   visible page before writes. Do not call `capture_view` or `render_page`.
+3. Define each section's retained entry, action/transition, and audience-facing outcome.
+   If all three cannot be identified, make no deletions in that section. Preserve build
+   timelines, navigation sources/targets, entry/outcome pages, and unique narration unless
+   another retained page demonstrably fulfills the same role.
+4. Automatically remove at most `max(1, floor(original pages * 0.25))` pages per section,
+   never two consecutive pages, and never leave a multi-page section with fewer than two.
+   Larger plans require explicit user approval. Remove approved pages highest number first.
+5. Re-list and inspect shapes on every retained page in the changed section, repair
+   dangling navigation, save, rerun the inspector without `-CreateBackup`, and verify the
+   entry/action/outcome flow remains intact. Report the backup path and flow check.
 
 If the project has no saved path, save it and read the path again. If the inspector or
 local image viewer is unavailable, stop and report that exact precondition; do not fall
