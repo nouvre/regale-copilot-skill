@@ -4,10 +4,16 @@ param(
 
     [string]$OutputDirectory,
 
-    [switch]$CreateBackup
+    [switch]$CreateBackup,
+
+    [switch]$CreateAggressiveCopy
 )
 
 $ErrorActionPreference = "Stop"
+
+if ($CreateAggressiveCopy -and -not $CreateBackup) {
+    throw "Aggressive refinement requires -CreateBackup."
+}
 
 if (-not (Test-Path -LiteralPath $ProjectPath -PathType Leaf)) {
     throw "Regale project not found: $ProjectPath"
@@ -20,6 +26,7 @@ if ([string]::IsNullOrWhiteSpace($projectFile)) {
 }
 $isUncPath = $projectFile.StartsWith("\\")
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path $env:TEMP "regale-refinement-$stamp"
 }
@@ -33,7 +40,6 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $backupPath = $null
 if ($CreateBackup) {
     $projectDirectory = Split-Path $projectFile -Parent
-    $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectFile)
     $backupName = "$projectName.pre-refine-$stamp.rglx"
     $fallbackDirectory = Join-Path $env:LOCALAPPDATA "Regale\Backups"
     $backupPath = if ($isUncPath) {
@@ -66,6 +72,29 @@ if ($CreateBackup) {
         }
     } finally {
         $backupArchive.Dispose()
+    }
+}
+
+$aggressiveCopyPath = $null
+if ($CreateAggressiveCopy) {
+    $aggressiveDirectory = Join-Path $env:LOCALAPPDATA "Regale\Aggressive Refinements"
+    New-Item -ItemType Directory -Force -Path $aggressiveDirectory | Out-Null
+    $aggressiveName = "$projectName.aggressive-refine-$stamp.rglx"
+    $aggressiveCopyPath = Join-Path $aggressiveDirectory $aggressiveName
+    Copy-Item -LiteralPath $projectFile -Destination $aggressiveCopyPath -ErrorAction Stop
+
+    $sourceLength = (Get-Item -LiteralPath $projectFile).Length
+    $aggressiveLength = (Get-Item -LiteralPath $aggressiveCopyPath).Length
+    if ($sourceLength -ne $aggressiveLength) {
+        throw "Aggressive refinement copy size does not match the source project."
+    }
+    $aggressiveArchive = [System.IO.Compression.ZipFile]::OpenRead($aggressiveCopyPath)
+    try {
+        if ($null -eq $aggressiveArchive.GetEntry("Project.xml")) {
+            throw "Aggressive refinement copy is not a valid Regale project package."
+        }
+    } finally {
+        $aggressiveArchive.Dispose()
     }
 }
 
@@ -347,6 +376,7 @@ try {
         projectPath = $projectFile
         inspectionPath = $inspectionFile
         backupPath = $backupPath
+        aggressiveCopyPath = $aggressiveCopyPath
         projectTitle = [string]$projectXml.Project.Title
         generatedAt = (Get-Date).ToString("o")
         pageCount = $pageReports.Count
@@ -361,6 +391,7 @@ try {
     Write-Output "Report: $reportPath"
     Write-Output "Thumbnails: $thumbnailRoot"
     if ($backupPath) { Write-Output "Backup: $backupPath" }
+    if ($aggressiveCopyPath) { Write-Output "Aggressive copy: $aggressiveCopyPath" }
     Write-Output "Pages: $($pageReports.Count)"
     Write-Output "Matching adjacent thumbnails: $(@($pageReports | Where-Object thumbnailMatchesPrevious).Count)"
     Write-Output "Package-equivalent adjacent pages: $(@($pageReports | Where-Object packageEquivalentToPrevious).Count)"

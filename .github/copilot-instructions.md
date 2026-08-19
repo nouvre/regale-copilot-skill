@@ -13,9 +13,11 @@ A demo brief means: create a demo-definition preview for Regale. It does not mea
 ## Open-Draft Refinement
 
 When the user's trimmed message is `refine the open draft` or `refine open draft`
-(case-insensitive), do not enter definition mode and do not ask which refinement to
-prioritize. Read `.github/skills/demo/BUILD_PIPELINE.md` and immediately follow
-**Refining an already-built draft**. Do not require `confirm build`.
+(case-insensitive), do not enter definition mode or require `confirm build`. Ask the user
+to choose `conservative` (recommended; uncertain pages become Review) or `aggressive`
+(edits a separate copy and may leave broken navigation). Make no tool calls before the
+choice. Accept the mode appended to the original prompt or as the immediate reply. Then
+read `.github/skills/demo/BUILD_PIPELINE.md` and follow **Refining an already-built draft**.
 
 The scope is page cleanup and resulting navigation only: remove clear setup, transient,
 error, unrelated, and package-equivalent duplicate pages, then verify the retained demo
@@ -28,8 +30,7 @@ retain it as **Review** when uncertain. Refinement writes are limited to `remove
 navigation repair on retained pages, and `save_project`.
 Do not count, mention, or remediate description/note completeness in the refinement status
 or summary.
-The first response must be a short status statement followed by Regale tool calls; it
-must not be a question, prioritization prompt, or choice list.
+After mode selection, start with a short status statement followed by Regale tool calls.
 
 
 **Mandatory refinement gates:**
@@ -52,6 +53,11 @@ must not be a question, prioritization prompt, or choice list.
 Review is a successful conservative verdict. Finish `complete with review items` when all
 pages were inspected and flow is valid; use `blocked` only when the audit or restoration
 itself cannot complete.
+
+In aggressive mode, create and open the inspector's `aggressiveCopyPath`; never modify the
+original. Visual evidence is still required, but deletion limits and failed-navigation
+protection are waived in the copy. Retain one visible page per section, list all broken
+navigation, label the copy not presentation-ready, and never publish it.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.
 Do not fall back to Regale image calls, metadata-only editing, page hiding, or text work.

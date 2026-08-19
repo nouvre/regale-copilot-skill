@@ -916,6 +916,20 @@ If the user asks to refine a project that is already open, do not recapture it a
 make them rebuild from the original brief. Treat this as a fresh, 30-minute refinement
 task:
 
+#### Choose the refinement mode
+
+For a bare `refine the open draft`, ask once before tools:
+
+- **Conservative cleanup (Recommended)** — remove only when the retained flow can be
+  verified. Keep uncertain or structurally protected pages as **Review**.
+- **Aggressive cleanup in a copy** — remove visually confirmed setup, error, blocked, and
+  redundant pages after one navigation-repair attempt, even if repair fails. Never modify
+  the source project; the resulting copy may be broken and is not presentation-ready.
+
+Accept `refine the open draft conservatively` and `refine the open draft aggressively` as
+direct selections. The immediate replies `conservative` and `aggressive` also select the
+mode. Do not ask another prioritization question after the choice.
+
 **Refinement has a narrow write surface.** Allowed writes are `remove_page`, a property or
 shape write strictly needed to repair navigation on a retained page, and `save_project`.
 Never call `set_text`, capture/recording tools, or product-interaction tools. Missing page
@@ -925,9 +939,12 @@ when the evidence is ambiguous.
 Do not count, mention, or remediate description/note completeness in refinement progress
 or its final summary.
 
-#### Mandatory refinement gates
+#### Mandatory conservative gates
 
 These are completion criteria, not suggestions:
+
+If the user selected aggressive mode, skip these gates and the conservative execution
+list below; continue at **Aggressive cleanup in a copy**.
 
 1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Read the saved
    `.rglx` path from `get_open_project`, save once, then run
@@ -1003,6 +1020,27 @@ and title/section polishing. The package inspector is the only allowed shell com
 The user can ask in plain language, for example `refine the open draft`. This is a
 post-build task, not a definition-mode command, and it does not require `confirm build`
 again when the current conversation already built or opened the project.
+
+#### Aggressive cleanup in a copy
+
+This mode requires the user's explicit `aggressive` selection. Never infer it from
+frustration, urgency, or a request to remove one page.
+
+1. Save the source, then run
+   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup -CreateAggressiveCopy`.
+2. Verify `backupPath` and `aggressiveCopyPath` exist. Record `projectPath` as immutable,
+   open `aggressiveCopyPath` with Regale, and confirm that exact copy is active before any
+   write. Abort if the active path is still the source.
+3. Perform the same full visual and package inspection. Aggressive does not permit removal
+   based only on matching thumbnails or vague suspicion.
+4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
+   selection permits deletion **only in the aggressive copy**. The 25-percent budget,
+   consecutive-removal restriction, and two-page floor are waived, but retain at least one
+   visible page in every section.
+5. Save and re-inspect the copy. Do not roll back to or overwrite the source. Finish with
+   `aggressive copy created - repair required`, the source path, copy path, backup path,
+   removals, retained Review pages, and every broken/dangling navigation edge. State that
+   the copy is not presentation-ready. Do not publish it.
 
 ---
 

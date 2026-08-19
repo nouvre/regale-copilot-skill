@@ -4,11 +4,14 @@
 
 When the user's trimmed message is `refine the open draft` or `refine open draft`
 (case-insensitive), this is not a product-demo brief and does not enter definition mode.
-Do not ask what kind of refinement to prioritize and do not ask for `confirm build`.
+Do not ask for `confirm build`. Ask the user to choose `conservative` (recommended;
+uncertain pages become Review) or `aggressive` (edits a separate copy and may leave broken
+navigation). Make no tool calls before the choice. Accept the mode appended to the
+original prompt or as the immediate reply.
 
-Read `.github/skills/demo/BUILD_PIPELINE.md` and immediately follow **Refining an
-already-built draft**. The scope is fixed: remove clear setup/transient/error/unrelated
-pages and adjacent duplicates, then verify navigation affected by those removals. Do not
+After mode selection, read `.github/skills/demo/BUILD_PIPELINE.md` and follow **Refining
+an already-built draft**. The scope is fixed: remove clear setup/transient/error/unrelated
+pages and package-equivalent duplicates, then verify navigation affected by removals. Do not
 rewrite presenter notes, add accessibility descriptions, or rebuild blocked scenes unless
 the user separately requests that work after refinement.
 Missing descriptions or notes are not refinement defects: never call `set_text` in this
@@ -18,10 +21,8 @@ navigation repair on retained pages, and `save_project`.
 Do not count, mention, or remediate description/note completeness in the refinement status
 or summary.
 
-If no Regale tools are visible or no project is open, stop and state that concrete
-precondition instead of offering a refinement menu.
-The first response must be a short status statement followed by Regale tool calls; it
-must not be a question, prioritization prompt, or choice list.
+After mode selection, if no Regale tools are visible or no project is open, stop and state
+that concrete precondition. Otherwise start with a short status statement and tool calls.
 
 
 **Mandatory refinement gates:**
@@ -44,6 +45,11 @@ must not be a question, prioritization prompt, or choice list.
 Review is a successful conservative verdict. Finish `complete with review items` when all
 pages were inspected and flow is valid; use `blocked` only when the audit or restoration
 itself cannot complete.
+
+In aggressive mode, create and open the inspector's `aggressiveCopyPath`; never modify the
+original. Visual evidence is still required, but deletion limits and failed-navigation
+protection are waived in the copy. Retain one visible page per section, list all broken
+navigation, label the copy not presentation-ready, and never publish it.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.
 Do not fall back to Regale image calls, metadata-only editing, page hiding, or text work.
