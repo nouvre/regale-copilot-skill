@@ -948,6 +948,11 @@ protected successor. `show refinement plan` reports the merged page verdicts and
 review queue. `apply refinement plan` asks for a mode if needed, reruns all audits with a
 fresh backup/copy, rejects a changed `projectSha256`, and follows the execution gates
 below. The analysis scripts never remove pages or repair navigation.
+The setup/error pass may propose **Remove** only when the page's extracted UI text
+contains the explicit first-run phrase `Welcome to the new ...` and a usable next page
+exists; it must protect and retarget to that successor. Generic `first-run`, `get started`,
+sign-in, setup, blocked, and error signals remain **Review** because they may come from
+metadata or expose a missing outcome rather than a disposable page.
 `refinement-plan.json` is authoritative during execution. Do not create additional
 **Remove** verdicts after the merge or allow one pass to promote a different pass's
 **Review** item. Report ambiguous visual/setup findings and require explicit approval of

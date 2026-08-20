@@ -8,5 +8,6 @@ __pycache__/
 .pytest_cache/
 
 # Local editor / OS noise
+.idea/
 .DS_Store
 Thumbs.db

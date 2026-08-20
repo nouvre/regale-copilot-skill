@@ -12,10 +12,23 @@ $findings = @()
 foreach ($page in @($report.pages | Sort-Object sectionNumber, pageNumber)) {
     $reasons = @($page.qualityReviewReasons)
     if ($reasons -contains "onboarding-or-setup-text") {
-        $findings += New-RefinementFinding -Audit "setup-errors" -Type "setup-or-onboarding" `
-            -Page $page -ProposedVerdict "Review" -Confidence "medium" `
-            -Reason "page contains onboarding, first-run, sign-in, or setup text" `
-            -Evidence @{ textSignals = [object[]]@($page.textSignals); thumbnailPath = [string]$page.thumbnailPath }
+        $signals = @($page.textSignals)
+        $isExplicitFirstRun = @($signals | Where-Object {
+            $_ -match "welcome to (the )?new"
+        }).Count -gt 0
+        if ($isExplicitFirstRun -and $page.nextPageId) {
+            $findings += New-RefinementFinding -Audit "setup-errors" -Type "explicit-first-run-onboarding" `
+                -Page $page -ProposedVerdict "Remove" -Confidence "high" `
+                -Reason "explicit first-run welcome page precedes a retained usable successor" `
+                -RetargetPageId ([string]$page.nextPageId) `
+                -ProtectedPageIds @([string]$page.nextPageId) `
+                -Evidence @{ textSignals = [object[]]$signals; thumbnailPath = [string]$page.thumbnailPath }
+        } else {
+            $findings += New-RefinementFinding -Audit "setup-errors" -Type "setup-or-onboarding-review" `
+                -Page $page -ProposedVerdict "Review" -Confidence "medium" `
+                -Reason "page contains sign-in, setup, or ambiguous onboarding text" `
+                -Evidence @{ textSignals = [object[]]$signals; thumbnailPath = [string]$page.thumbnailPath }
+        }
     }
     if ($reasons -contains "blocked-or-error-text") {
         $findings += New-RefinementFinding -Audit "setup-errors" -Type "blocked-or-error" `
