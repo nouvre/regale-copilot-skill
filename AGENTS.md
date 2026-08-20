@@ -40,6 +40,9 @@ that concrete precondition. Otherwise start with a short status statement and to
    whether a response is visible, and identify which prior prompt it answers. Flag a new
    prompt inserted before the prior prompt's response and a response preceded by a
    different prompt. Timeline metadata and page titles do not establish this continuity.
+   Treat a stable response as the protected outcome, never as the continuity-removal
+   candidate. For prompt A -> contextless prompt B -> response A, preserve prompt A and
+   response A, remove only prompt B, and record both survivor page ids before writing.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
    Preserve build timelines, navigation sources/targets, and unique narration unless
    another retained page fulfills the same role.

@@ -64,6 +64,9 @@ Regale tool calls.
    prompt that response answers. Read this from the thumbnails; timeline presence and page
    titles are not substitutes. Flag any prompt that is followed by a different prompt
    before its response, or any response whose immediately preceding prompt does not match.
+   A stable response is the protected outcome, not the removal candidate. For a sequence
+   prompt A -> contextless prompt B -> response A, preserve prompt A and response A, remove
+   only prompt B, and record the surviving prompt/response page ids before any write.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
    If all three cannot be identified, make no deletions in that section. Preserve build
    timelines, navigation sources/targets, entry/outcome pages, and unique narration unless
@@ -97,7 +100,9 @@ generating, or other in-flight page between a request and its stable response is
 navigate directly from request to response. A prompt-only composer between a retained
 request and response is **Remove** even when its prompt text differs. Keep iterative
 prompting only when that page visibly includes the prior response for context and leads to
-a separate retained outcome; different prompt text alone is not audience value. Attempt
+a separate retained outcome; different prompt text alone is not audience value. A stable
+response page is never the removal candidate for a prompt-continuity mismatch. Record the
+prompt and response survivor ids before deleting an intervening composer. Attempt
 each navigation repair once, but after a failed repair the
 explicit aggressive selection permits deletion in the copy. Consecutive removals and the
 25-percent limit are waived. Resolve the defect ledger before considering other cleanup.

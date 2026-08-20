@@ -970,6 +970,11 @@ list below; continue at **Aggressive cleanup in a copy**.
    Do not infer continuity from timeline presence, narration, or page titles. Flag a prompt
    followed by a different prompt before its response, and a response whose immediately
    preceding prompt does not match it.
+   A stable response is a protected audience-facing outcome, not the removal candidate for
+   a continuity mismatch. Before writes, record the exact prompt page and response page
+   that must survive. For prompt A -> contextless prompt B -> response A, the only
+   continuity removal candidate is prompt B. Never delete response A to make the remaining
+   sequence appear consistent.
 3. Before writes, state an internal flow contract for every section: its entry state, at
    least one retained action/transition, and its audience-facing outcome. If those three
    roles cannot be identified, make no deletions in that section and mark it **Review**.
@@ -1065,7 +1070,12 @@ frustration, urgency, or a request to remove one page.
    prompting only when the page visibly includes the prior response for context and leads
    to a separate retained outcome. Different prompt text alone is not audience value. If
    the continuity table is prompt A -> contextless prompt B -> response to prompt A, remove
-   prompt B and retarget prompt A directly to its response.
+   prompt B and retarget prompt A directly to its response. Before deletion, identify both
+   survivor page ids. After deletion, re-list the section and verify that both survivors
+   remain and that the prompt navigates to the response. If either survivor is absent,
+   stop editing, discard the damaged copy, create and open a fresh aggressive copy from
+   the immutable source path, and report the failed refinement without retrying that
+   deletion.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one
