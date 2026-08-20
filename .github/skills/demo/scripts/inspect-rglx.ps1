@@ -39,9 +39,12 @@ if (-not $OutputDirectory) {
 
 $outputRoot = [System.IO.Path]::GetFullPath($OutputDirectory)
 $thumbnailRoot = Join-Path $outputRoot "thumbnails"
+$sequenceWindowRoot = Join-Path $outputRoot "sequence-windows"
 New-Item -ItemType Directory -Force -Path $thumbnailRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $sequenceWindowRoot | Out-Null
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+Add-Type -AssemblyName System.Drawing
 
 $backupPath = $null
 if ($CreateBackup) {
@@ -116,6 +119,7 @@ if ($isUncPath) {
         throw "Local inspection snapshot size does not match the source project."
     }
 }
+$projectSha256 = (Get-FileHash -LiteralPath $inspectionFile -Algorithm SHA256).Hash.ToLowerInvariant()
 
 function Get-ZipEntryText {
     param(
@@ -160,6 +164,29 @@ function Get-StringSha256 {
     }
 }
 
+function Get-ComposerTexts {
+    param([string]$Html)
+
+    if ([string]::IsNullOrWhiteSpace($Html)) { return @() }
+    $texts = @()
+    foreach ($match in [regex]::Matches(
+        $Html,
+        '(?is)<[^>]+data-lexical-text=["''][^"'']+["''][^>]*>(.*?)</[^>]+>'
+    )) {
+        $text = Convert-HtmlToText $match.Groups[1].Value
+        $text = [regex]::Replace($text, "[\u200B\u200C]", "").Trim()
+        if (-not [string]::IsNullOrWhiteSpace($text)) { $texts += $text }
+    }
+    return @($texts | Select-Object -Unique)
+}
+
+function Get-ChatOutputCount {
+    param([string]$Html)
+
+    if ([string]::IsNullOrWhiteSpace($Html)) { return 0 }
+    return [regex]::Matches($Html, 'data-testid=["'']chatOutput["'']', 'IgnoreCase').Count
+}
+
 function Get-TextSignals {
     param([string]$Text)
 
@@ -189,6 +216,58 @@ function Get-NodeText {
     param($Node)
     if ($null -eq $Node) { return "" }
     return [regex]::Replace([string]$Node.InnerText, "\s+", " ").Trim()
+}
+
+function New-SequenceWindowImage {
+    param(
+        [array]$Pages,
+        [string]$OutputPath
+    )
+
+    $panelWidth = 1280
+    $panelHeight = 720
+    $labelHeight = 46
+    $canvas = New-Object System.Drawing.Bitmap($panelWidth, (($panelHeight + $labelHeight) * 3))
+    $graphics = [System.Drawing.Graphics]::FromImage($canvas)
+    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $graphics.Clear([System.Drawing.Color]::White)
+    $font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold)
+    $whiteBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
+    $normalBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(45, 55, 72))
+    $currentBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(154, 52, 18))
+
+    try {
+        for ($index = 0; $index -lt $Pages.Count; $index++) {
+            $page = $Pages[$index]
+            $role = @("PREVIOUS", "CURRENT (DECIDE)", "NEXT")[$index]
+            $top = $index * ($panelHeight + $labelHeight)
+            $labelBrush = if ($index -eq 1) { $currentBrush } else { $normalBrush }
+            $graphics.FillRectangle($labelBrush, 0, $top, $panelWidth, $labelHeight)
+            $label = "$role - Section $($page.sectionNumber), Page $($page.pageNumber) - $($page.pageId)"
+            $graphics.DrawString($label, $font, $whiteBrush, 14, ($top + 8))
+
+            if (-not [string]::IsNullOrWhiteSpace([string]$page.thumbnailPath) -and
+                (Test-Path -LiteralPath $page.thumbnailPath -PathType Leaf)) {
+                $sourceImage = [System.Drawing.Image]::FromFile($page.thumbnailPath)
+                try {
+                    $graphics.DrawImage(
+                        $sourceImage,
+                        (New-Object System.Drawing.Rectangle(0, ($top + $labelHeight), $panelWidth, $panelHeight))
+                    )
+                } finally {
+                    $sourceImage.Dispose()
+                }
+            }
+        }
+        $canvas.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    } finally {
+        $currentBrush.Dispose()
+        $normalBrush.Dispose()
+        $whiteBrush.Dispose()
+        $font.Dispose()
+        $graphics.Dispose()
+        $canvas.Dispose()
+    }
 }
 
 $archive = [System.IO.Compression.ZipFile]::OpenRead($inspectionFile)
@@ -304,6 +383,10 @@ try {
             $thumbnailMatchesPrevious = $null -ne $thumbnailHash -and $thumbnailHash -eq $previousHash
             $htmlHash = Get-StringSha256 $html
             $baselineHtmlHash = Get-StringSha256 $baselineHtml
+            $terminalComposerTexts = @(Get-ComposerTexts $html)
+            $baselineComposerTexts = @(Get-ComposerTexts $baselineHtml)
+            $terminalChatOutputCount = Get-ChatOutputCount $html
+            $baselineChatOutputCount = Get-ChatOutputCount $baselineHtml
             $timelineHash = Get-StringSha256 $timeline
             $description = Get-NodeText $page.Description
             $presenterNotes = Get-NodeText $page.PresenterNotes
@@ -397,6 +480,13 @@ try {
                 redundantLeadInCandidate = $false
                 redundantLeadInSuccessorPageId = $null
                 redundantLeadInReason = $null
+                promptHandoffCandidate = $false
+                promptHandoffSuccessorPageId = $null
+                promptHandoffReason = $null
+                terminalComposerTexts = [object[]]$terminalComposerTexts
+                baselineComposerTexts = [object[]]$baselineComposerTexts
+                terminalChatOutputCount = $terminalChatOutputCount
+                baselineChatOutputCount = $baselineChatOutputCount
                 description = $description
                 presenterNotes = $presenterNotes
                 originalUrl = $originalUrl
@@ -465,6 +555,35 @@ try {
                     "same starting frame and surface; successor has a self-contained, substantially stronger timeline"
             }
         }
+
+        for ($index = 1; $index -lt $orderedSectionPages.Count - 1; $index++) {
+            $previous = $orderedSectionPages[$index - 1]
+            $current = $orderedSectionPages[$index]
+            $next = $orderedSectionPages[$index + 1]
+            $previousPrompt = @($previous.terminalComposerTexts | Select-Object -Last 1)
+            $currentPrompt = @($current.terminalComposerTexts | Select-Object -Last 1)
+            $nextBaselinePrompts = @($next.baselineComposerTexts)
+            $promptIsRepeatedBySuccessor =
+                $currentPrompt.Count -eq 1 -and
+                @($nextBaselinePrompts | Where-Object { $_ -eq $currentPrompt[0] }).Count -gt 0
+            $promptChangesFromPredecessor =
+                $previousPrompt.Count -eq 1 -and
+                $currentPrompt.Count -eq 1 -and
+                $previousPrompt[0] -ne $currentPrompt[0]
+            $successorAddsOutput =
+                $next.terminalChatOutputCount -gt $current.terminalChatOutputCount
+
+            if ($current.surfaceKey -eq $previous.surfaceKey -and
+                $next.surfaceKey -eq $current.surfaceKey -and
+                $promptChangesFromPredecessor -and
+                $promptIsRepeatedBySuccessor -and
+                $successorAddsOutput) {
+                $current.promptHandoffCandidate = $true
+                $current.promptHandoffSuccessorPageId = $next.pageId
+                $current.promptHandoffReason =
+                    "new terminal composer prompt is repeated in successor baseline, whose timeline adds output"
+            }
+        }
     }
 
     $sequenceWindows = @()
@@ -476,9 +595,15 @@ try {
             $previous = $orderedSectionPages[$index]
             $current = $orderedSectionPages[$index + 1]
             $next = $orderedSectionPages[$index + 2]
+            $sequenceWindowPath = Join-Path $sequenceWindowRoot (
+                "section-{0:D2}-current-page-{1:D3}-{2}.png" -f
+                    $current.sectionNumber, $current.pageNumber, $current.pageId
+            )
+            New-SequenceWindowImage -Pages @($previous, $current, $next) -OutputPath $sequenceWindowPath
             $sequenceWindows += [pscustomobject]@{
                 sectionNumber = $current.sectionNumber
                 sectionTitle = $current.sectionTitle
+                sequenceWindowPath = $sequenceWindowPath
                 previousPageNumber = $previous.pageNumber
                 previousPageId = $previous.pageId
                 previousThumbnailPath = $previous.thumbnailPath
@@ -494,6 +619,7 @@ try {
 
     $report = [pscustomobject]@{
         projectPath = $projectFile
+        projectSha256 = $projectSha256
         inspectionPath = $inspectionFile
         backupPath = $backupPath
         aggressiveCopyPath = $aggressiveCopyPath
@@ -511,6 +637,7 @@ try {
     Write-Output "Refinement package inspection complete."
     Write-Output "Report: $reportPath"
     Write-Output "Thumbnails: $thumbnailRoot"
+    Write-Output "Labeled sequence windows: $sequenceWindowRoot"
     if ($backupPath) { Write-Output "Backup: $backupPath" }
     if ($aggressiveCopyPath) { Write-Output "Aggressive copy: $aggressiveCopyPath" }
     Write-Output "Pages: $($pageReports.Count)"
@@ -518,6 +645,7 @@ try {
     Write-Output "Matching adjacent thumbnails: $(@($pageReports | Where-Object thumbnailMatchesPrevious).Count)"
     Write-Output "Package-equivalent adjacent pages: $(@($pageReports | Where-Object packageEquivalentToPrevious).Count)"
     Write-Output "Redundant lead-in candidates: $(@($pageReports | Where-Object redundantLeadInCandidate).Count)"
+    Write-Output "Prompt handoff candidates: $(@($pageReports | Where-Object promptHandoffCandidate).Count)"
     Write-Output "Presentation-quality review candidates: $(@($pageReports | Where-Object { $_.qualityReviewReasons.Count -gt 0 }).Count)"
     Write-Output "Pages with locked inbound navigation: $(@($pageReports | Where-Object { $_.inboundLockedNavigationCount -gt 0 }).Count)"
     Write-Output "Pages with review signals: $(@($pageReports | Where-Object { $_.textSignals.Count -gt 0 }).Count)"

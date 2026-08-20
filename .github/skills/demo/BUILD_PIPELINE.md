@@ -930,6 +930,29 @@ Accept `refine the open draft conservatively` and `refine the open draft aggress
 direct selections. The immediate replies `conservative` and `aggressive` also select the
 mode. Do not ask another prioritization question after the choice.
 
+#### Focused refinement audits
+
+The refinement system has separate read-only passes. They share one package extraction
+but return independent findings:
+
+- `audit duplicates` -> `-Audits duplicates`
+- `audit screenshot order` -> `-Audits sequence`
+- `audit setup and errors` -> `-Audits setup-errors`
+- `audit demo flow` -> `-Audits flow`
+- `show refinement plan` -> `-Audits all`
+
+For these commands, read the open project path and run
+`scripts\run-refinement-audits.ps1 -ProjectPath "PATH" -Audits AUDIT`. Do not ask for a
+mode, create a backup/copy, or write to Regale. Report the focused JSON findings and every
+protected successor. `show refinement plan` reports the merged page verdicts and visual
+review queue. `apply refinement plan` asks for a mode if needed, reruns all audits with a
+fresh backup/copy, rejects a changed `projectSha256`, and follows the execution gates
+below. The analysis scripts never remove pages or repair navigation.
+`refinement-plan.json` is authoritative during execution. Do not create additional
+**Remove** verdicts after the merge or allow one pass to promote a different pass's
+**Review** item. Report ambiguous visual/setup findings and require explicit approval of
+the exact section/page before a later execution pass removes them.
+
 **Refinement has a narrow write surface.** Allowed writes are `remove_page`, a property or
 shape write strictly needed to repair navigation on a retained page, and `save_project`.
 Never call `set_text`, capture/recording tools, or product-interaction tools. Missing page
@@ -948,13 +971,16 @@ list below; continue at **Aggressive cleanup in a copy**.
 
 1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Read the saved
    `.rglx` path from `get_open_project`, save once, then run
-   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. The inspector is the only
-   shell command allowed in refinement mode. Do not remove anything unless `backupPath`
-   exists in `report.json`; include that path in the final summary.
+   `scripts\run-refinement-audits.ps1 -ProjectPath "PATH" -Audits all -CreateBackup`.
+   The focused audit suite is the only shell workflow allowed in refinement mode. Do not
+   remove anything unless `backupPath` exists in `refinement-plan.json`; include that path
+   in the final summary.
 2. Read its `report.json`. For every visible page in section/page order, inspect the
    extracted thumbnail as its **starting frame**. Do not use one bulk `View N images`
    gallery as the audit. Iterate `sequenceWindows` in section/page order and view each
-   labeled previous/current/next trio together. For every window record whether current
+   `sequenceWindowPath` contact sheet as one image. The three panels are labeled PREVIOUS,
+   CURRENT (DECIDE), and NEXT; do not substitute a gallery of separately viewed
+   thumbnails. For every window record whether current
    visibly follows previous, whether next visibly follows current, and whether removing
    current makes previous -> next more coherent without losing a stable outcome. Mark
    current **SequenceBreak** when that last test is true. Then read its build-timeline flag,
@@ -994,6 +1020,12 @@ list below; continue at **Aggressive cleanup in a copy**.
    that the reported successor carries the useful action/outcome. Classify only the short
    predecessor **Remove** when entry, successor, and outcome remain. Never remove the
    reported successor; record it as the retarget destination for inbound navigation.
+   `promptHandoffCandidate` is also a concrete removal candidate. The inspector has
+   verified that current's terminal composer prompt is repeated in the reported
+   successor baseline and that the successor timeline adds output. Remove only current,
+   protect the reported successor, and retarget inbound navigation to it. Hidden earlier
+   output in current's DOM does not protect a screenshot that visibly presents only the
+   next prompt.
 3. Before writes, state an internal flow contract for every section: its entry state, at
    least one retained action/transition, and its audience-facing outcome. Record
    `baselineOutcomeStatus` and exact outcome-candidate page ids. If those three roles
@@ -1042,7 +1074,8 @@ Regale image calls, metadata-only editing, page hiding, or text polishing.
 Forbidden tools/actions in this mode: `get_page` as a visual substitute, `set_text`,
 `capture_view`, `render_page`, capture or recording creation, product interaction,
 page/section/project property edits, page hiding, accessibility work, presenter-note work,
-and title/section polishing. The package inspector is the only allowed shell command.
+and title/section polishing. The focused audit runner and its bundled read-only audit
+scripts are the only allowed shell workflow.
 
 1. Check Read, Edit, and Save permissions, then read `list_sections` and `list_pages`.
 2. Run the package inspector with `-CreateBackup`. For each section, apply the
@@ -1069,7 +1102,7 @@ This mode requires the user's explicit `aggressive` selection. Never infer it fr
 frustration, urgency, or a request to remove one page.
 
 1. Save the source, then run
-   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup -CreateAggressiveCopy`.
+   `scripts\run-refinement-audits.ps1 -ProjectPath "PATH" -Audits all -CreateBackup -CreateAggressiveCopy`.
    Before running it, reject a source whose filename contains `.aggressive-refine-` or
    whose parent is `Regale\Aggressive Refinements`. Tell the user to reopen the original
    project. Never create an aggressive copy from an earlier aggressive copy.
@@ -1113,6 +1146,10 @@ frustration, urgency, or a request to remove one page.
    Remove the short predecessor, retain the reported stronger successor, and verify every
    affected inbound edge reaches that successor. This signal never permits removing both
    pages.
+   Resolve every `promptHandoffCandidate` before unrelated cleanup. Remove only the
+   handoff page, retain its reported response-producing successor, and verify the
+   successor baseline repeats the prompt and its timeline still adds output after the
+   navigation repair.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one

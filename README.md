@@ -6,6 +6,8 @@ What this repo contains (minimal, lightweight):
 - .github/skills/demo/BUILD_PIPELINE.md - CANONICAL build pipeline; the only copy
 - .github/agents/regale-demo.agent.md - GitHub Copilot app custom agent for native demo sessions
 - .github/skills/demo/SKILL.md - portable Copilot Agent Skill
+- .github/skills/demo/scripts/run-refinement-audits.ps1 - read-only refinement audit orchestrator
+- .github/skills/demo/scripts/audit-*.ps1 - focused duplicate, screenshot-order, setup/error, and flow audits
 - .mcp.json            - GitHub Copilot local MCP configuration for Regale Studio UAT
 - scripts/install-copilot-user-assets.ps1 - Windows installer for personal Copilot agent/skill/MCP setup; auto-detects the Regale bridge, preflights, verifies, offers a Copilot restart
 - scripts/install-from-github.ps1 - one-command installer that downloads the latest setup from GitHub
@@ -18,9 +20,10 @@ What this repo contains (minimal, lightweight):
 - examples/example_demo.yaml - example demo-definition conforming to the schema
 - .mcp.json            - Regale MCP server snippet (place in .vscode/mcp.json or your Copilot CLI config)
 
-Editing behaviour: change `.github/skills/demo/BUILD_PIPELINE.md` and nothing else. The
-definition-mode rules are duplicated across four runtime files because Copilot's skill
-and agent formats each load their own; the build pipeline deliberately is not.
+Editing behaviour: `.github/skills/demo/BUILD_PIPELINE.md` is the canonical build and
+refinement workflow. Focused package detectors live under `.github/skills/demo/scripts`.
+Command-routing rules are duplicated across four runtime files because Copilot's skill
+and agent formats each load their own; the build pipeline deliberately is not duplicated.
 
 Quick setup (Windows):
 1) Install the Copilot agent, skill, and MCP config. In PowerShell:
@@ -50,6 +53,11 @@ Quick setup (Windows):
    The parser is available for teams who already maintain scripts; the default chat-first flow hides YAML from end users.
 
 4) To run the build, use the Copilot app, Copilot CLI, or an MCP-capable Copilot client on the SAME PC as Regale Studio. The build_orchestrator.py is a template that expects an MCP client adapter; it prints planned steps and includes TODOs where Regale MCP calls belong.
+
+5) To inspect an existing open draft without changing it, use one of these commands in the
+   Regale Demo agent: `audit duplicates`, `audit screenshot order`, `audit setup and
+   errors`, `audit demo flow`, or `show refinement plan`. Use `apply refinement plan` to
+   choose conservative/aggressive and execute a freshly validated merged plan.
 
 Important notes:
 - The parser only supports the standard two-column table format (left = What to say, right = What to show).

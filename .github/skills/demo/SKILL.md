@@ -13,6 +13,28 @@ A demo brief means: create a compact Regale demo-definition preview. It does not
 
 ## Open-Draft Refinement
 
+Focused read-only refinement commands are also supported:
+
+- `audit duplicates`
+- `audit screenshot order`
+- `audit setup and errors`
+- `audit demo flow`
+- `show refinement plan`
+- `apply refinement plan`
+
+For an `audit` command or `show refinement plan`, do not ask for a refinement mode and do
+not modify Regale. Read the open project path and run `scripts\run-refinement-audits.ps1`:
+map the commands to `duplicates`, `sequence`, `setup-errors`, `flow`, or `all`. Report the
+focused findings, protected survivor ids, and review items. `apply refinement plan` asks
+for conservative/aggressive when not already selected, reruns `all` with a fresh backup
+(and aggressive copy when selected), then executes only the merged plan after flow
+validation. A prior plan is advisory and must not be applied if its `projectSha256` differs
+from the fresh plan.
+The merged plan is authoritative for execution. Do not invent a new **Remove** verdict
+while applying it or let one audit reclassify another audit's **Review** item. Report
+ambiguous review items and require explicit approval of the exact page before a later
+execution pass removes it.
+
 When the user's trimmed message is `refine the open draft` or `refine open draft`
 (case-insensitive), this is not a demo brief. Do not enter definition mode or require
 `confirm build`. Ask only this mode question and make no tool calls:
@@ -30,7 +52,8 @@ direct mode selections. Also accept `conservative` or `aggressive` when it immed
 answers the mode question. After selection, do not ask another prioritization question.
 
 Read `BUILD_PIPELINE.md`, in this skill's folder, and immediately follow **Refining an
-already-built draft**. The scope is page cleanup and resulting navigation only: remove
+already-built draft**. Run all focused audits and merge their plan before any Regale
+write. The scope is page cleanup and resulting navigation only: remove
 clear setup, transient, error, unrelated, and package-equivalent duplicate pages, then
 verify the retained demo flow. Do not rewrite presenter notes, add accessibility
 descriptions, or rebuild blocked scenes unless the user asks separately. If Regale tools
@@ -48,12 +71,15 @@ Regale tool calls.
 **Conservative mode gates:**
 
 1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Save once, then run
-   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. Do not remove anything
-   unless the report contains an existing `backupPath`.
+   `scripts\run-refinement-audits.ps1 -ProjectPath "PATH" -Audits all -CreateBackup`.
+   Read `refinement-plan.json`; do not remove anything unless it contains an existing
+   `backupPath` and a merged **Remove** verdict.
 2. Inspect every thumbnail as a starting frame, not the whole page. Do not bulk-view all
    project thumbnails as one undifferentiated gallery. Use the inspector's
-   `sequenceWindows` in section/page order and view each labeled previous/current/next
-   trio together. For every trio record: whether current visibly follows previous,
+   `sequenceWindows` in section/page order and view each `sequenceWindowPath` contact
+   sheet as one image. Its panels are explicitly labeled PREVIOUS, CURRENT (DECIDE), and
+   NEXT; do not substitute a gallery of three separate thumbnails. For every trio record:
+   whether current visibly follows previous,
    whether next visibly follows current, and whether removing current makes
    previous -> next more coherent without losing a stable outcome. Mark current
    **SequenceBreak** when that final test is true. Also read its build
@@ -88,6 +114,11 @@ Regale tool calls.
    Then classify the short predecessor **Remove** only when the successor, section entry,
    and outcome all remain; never remove the reported successor. Retarget inbound
    navigation directly to that successor.
+   A `promptHandoffCandidate` is likewise a concrete removal candidate: its terminal
+   composer prompt is already present in the reported successor's baseline, and that
+   successor adds the response. Remove the handoff page, retain the reported successor,
+   and retarget inbound navigation to it. Hidden earlier output in the handoff page's DOM
+   does not protect a screenshot that visibly presents only the next prompt.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
    Record baseline outcome status and exact outcome-candidate page ids before writes. If
    all three cannot be identified, mark the gap **PreExistingOutcomeGap** and make no
@@ -110,8 +141,8 @@ Regale tool calls.
 when every page was inspected and retained flow is valid. Use `blocked` only when the
 backup, inspection, restoration, or project-wide flow verification itself cannot complete.
 
-**Aggressive mode overrides only the conservative deletion limits.** Run the inspector
-with both `-CreateBackup` and `-CreateAggressiveCopy`, verify both paths, then open the
+**Aggressive mode overrides only the conservative deletion limits.** Run the audit runner
+with `-Audits all -CreateBackup -CreateAggressiveCopy`, verify both paths, then open the
 reported `aggressiveCopyPath` and confirm it is the active project before writes. Never
 save changes to `projectPath`. If the open filename already contains
 `.aggressive-refine-` or is inside `Regale\Aggressive Refinements`, stop and tell the user
@@ -142,6 +173,9 @@ the exact larger plan and receiving separate approval, even in aggressive mode.
 Resolve every visually confirmed `redundantLeadInCandidate` before unrelated cleanup:
 remove the short predecessor, retain its reported stronger successor, and verify inbound
 navigation reaches that successor. The signal is not permission to remove both pages.
+Resolve every `promptHandoffCandidate` the same way: remove only the handoff page and
+retain its reported response-producing successor. Verify the successor starts with the
+same prompt and that its timeline still adds output before and after the edit.
 A unique timeline or narration does not preserve a confirmed onboarding page, valueless
 intermediate state, or visually redundant frame when the retained predecessor/successor
 still supplies the action and outcome. A section marked **PreExistingOutcomeGap** is frozen

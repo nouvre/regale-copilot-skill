@@ -172,10 +172,24 @@ if (-not $agentSourceOk) {
 
 $pipelineSource = Join-Path $skillSource "BUILD_PIPELINE.md"
 $inspectorSource = Join-Path $skillSource "scripts\inspect-rglx.ps1"
+$auditRunnerSource = Join-Path $skillSource "scripts\run-refinement-audits.ps1"
+$auditScriptNames = @(
+    "audit-duplicates.ps1",
+    "audit-sequence.ps1",
+    "audit-setup-errors.ps1",
+    "audit-flow.ps1",
+    "merge-refinement-plan.ps1",
+    "refinement-audit-common.ps1"
+)
+$auditScriptsSourceOk = @($auditScriptNames | Where-Object {
+    -not (Test-Path -PathType Leaf (Join-Path $skillSource "scripts\$_"))
+}).Count -eq 0
 $skillSourceOk = (Test-Path -PathType Container $skillSource) -and
     (Test-Path -PathType Leaf $pipelineSource) -and
-    (Test-Path -PathType Leaf $inspectorSource)
-Write-Check $skillSourceOk "Demo skill, build pipeline, and refinement inspector found"
+    (Test-Path -PathType Leaf $inspectorSource) -and
+    (Test-Path -PathType Leaf $auditRunnerSource) -and
+    $auditScriptsSourceOk
+Write-Check $skillSourceOk "Demo skill, build pipeline, and focused refinement audits found"
 if (-not $skillSourceOk) {
     $problems.Add("Skill files not found under: $skillSource. Re-download this repository.")
 }
@@ -297,7 +311,11 @@ if (-not $agentOk) { $failures.Add("agent file") }
 $pipelineTarget = Join-Path $skillTargetDir "BUILD_PIPELINE.md"
 $skillOk = (Test-Path -PathType Leaf $pipelineTarget) -and
     (Test-Path -PathType Leaf (Join-Path $skillTargetDir "SKILL.md")) -and
-    (Test-Path -PathType Leaf (Join-Path $skillTargetDir "scripts\inspect-rglx.ps1"))
+    (Test-Path -PathType Leaf (Join-Path $skillTargetDir "scripts\inspect-rglx.ps1")) -and
+    (Test-Path -PathType Leaf (Join-Path $skillTargetDir "scripts\run-refinement-audits.ps1")) -and
+    (@($auditScriptNames | Where-Object {
+        -not (Test-Path -PathType Leaf (Join-Path $skillTargetDir "scripts\$_"))
+    }).Count -eq 0)
 Write-Check $skillOk "Skill installed" $skillTargetDir
 if (-not $skillOk) { $failures.Add("skill files") }
 

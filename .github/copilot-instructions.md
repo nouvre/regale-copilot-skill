@@ -12,12 +12,24 @@ A demo brief means: create a demo-definition preview for Regale. It does not mea
 
 ## Open-Draft Refinement
 
+Support these focused read-only commands: `audit duplicates`, `audit screenshot order`,
+`audit setup and errors`, `audit demo flow`, and `show refinement plan`. They do not ask
+for conservative/aggressive and never modify Regale. Map them to
+`scripts\run-refinement-audits.ps1 -Audits duplicates|sequence|setup-errors|flow|all` and
+report its findings and protected successors. `apply refinement plan` asks for a mode,
+reruns all audits with a fresh backup/copy, rejects a stale `projectSha256`, validates the
+flow contracts, and executes only merged **Remove** verdicts.
+Treat that merged plan as authoritative: never invent removals during execution or let one
+pass promote another pass's **Review** item. Ambiguous pages require explicit page-level
+approval in a later pass.
+
 When the user's trimmed message is `refine the open draft` or `refine open draft`
 (case-insensitive), do not enter definition mode or require `confirm build`. Ask the user
 to choose `conservative` (recommended; uncertain pages become Review) or `aggressive`
 (edits a separate copy and may leave broken navigation). Make no tool calls before the
 choice. Accept the mode appended to the original prompt or as the immediate reply. Then
 read `.github/skills/demo/BUILD_PIPELINE.md` and follow **Refining an already-built draft**.
+Run all focused audits and merge their plan before any Regale write.
 
 The scope is page cleanup and resulting navigation only: remove clear setup, transient,
 error, unrelated, and package-equivalent duplicate pages, then verify the retained demo
@@ -36,11 +48,14 @@ After mode selection, start with a short status statement followed by Regale too
 **Mandatory refinement gates:**
 
 1. Save the open project, then run
-   `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. Do not remove anything
-   unless the report contains an existing `backupPath`.
+   `scripts\run-refinement-audits.ps1 -ProjectPath "PATH" -Audits all -CreateBackup`.
+   Read `refinement-plan.json`; do not remove anything unless it contains an existing
+   `backupPath` and a merged **Remove** verdict.
 2. Treat each thumbnail as a starting frame. Do not bulk-view all thumbnails as one
-   gallery. Use `report.json.sequenceWindows` in section/page order and view each labeled
-   previous/current/next trio together. Record whether current follows previous, next
+   gallery. Use `report.json.sequenceWindows` in section/page order and view each
+   `sequenceWindowPath` contact sheet as one image. Its panels are labeled PREVIOUS,
+   CURRENT (DECIDE), and NEXT; never substitute three separately viewed thumbnails. Record
+   whether current follows previous, next
    follows current, and removing current makes previous -> next more coherent without
    losing a stable outcome. Mark current **SequenceBreak** when that last test is true.
    Also inspect its build timeline, HTML state, narration, and navigation roles. Matching
@@ -66,6 +81,10 @@ After mode selection, start with a short status statement followed by Regale too
    successor contains the substantially stronger self-contained action/outcome. Remove
    only the predecessor when entry, successor, and outcome remain. Never remove the
    reported successor, and retarget inbound navigation directly to it.
+   Treat `promptHandoffCandidate` as a concrete removal candidate. Its terminal composer
+   prompt is already present in the reported successor baseline, and that successor adds
+   the response. Remove only the handoff page, retain the successor, and retarget inbound
+   navigation to it; hidden earlier DOM output does not protect a prompt-only screenshot.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
    Record baseline outcome status and candidate ids. If the source lacks an outcome, mark
    **PreExistingOutcomeGap**, leave that section unchanged, and retain it as **Review**.
@@ -97,6 +116,9 @@ requires separate approval to remove more than half of a section's original page
 Resolve a visually confirmed `redundantLeadInCandidate` by removing its short predecessor,
 retaining the reported stronger successor, and verifying navigation reaches the successor.
 The signal never authorizes removal of both pages.
+Resolve every `promptHandoffCandidate` by removing only the handoff page and retaining its
+reported response-producing successor. Verify the successor repeats the prompt and still
+adds output after navigation repair.
 In aggressive mode, an exact adjacent thumbnail match is **Remove** unless objective
 final-state evidence proves a distinct visible outcome; timeline data or a claimed outcome
 role alone is insufficient. Remove an in-flight page between a request and stable response

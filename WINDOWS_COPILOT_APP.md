@@ -187,6 +187,24 @@ agent will tell you which window to bring forward and when to click.
 If a demo mixes web and desktop surfaces, the web scenes still build automatically; only
 the desktop ones need you.
 
+## Refining an Existing Draft
+
+Use focused audits when you want to inspect one class of problem without changing the
+open project:
+
+```text
+audit duplicates
+audit screenshot order
+audit setup and errors
+audit demo flow
+show refinement plan
+```
+
+These commands are read-only. `refine the open draft` runs all audits and then asks for
+conservative or aggressive execution. `apply refinement plan` also reruns the audits
+against the current saved file before making changes, so an older plan cannot be applied
+to a changed project.
+
 ## Quick Troubleshooting
 
 - **`Regale Demo` missing under `/agent`** — restart GitHub Copilot fully (tray →
