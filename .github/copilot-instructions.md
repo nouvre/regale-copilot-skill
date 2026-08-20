@@ -61,6 +61,11 @@ After mode selection, start with a short status statement followed by Regale too
    timeline **SequenceBreak** from starting thumbnails alone. Read timeline duration,
    segment/event counts, HTML fingerprints, and `surfaceKey`; preserve it unless terminal
    evidence confirms setup, error, onboarding, or a redundant outcome.
+   Treat `redundantLeadInCandidate` as a narrow exception: visually confirm that the short
+   predecessor and its reported same-surface successor start identically and that the
+   successor contains the substantially stronger self-contained action/outcome. Remove
+   only the predecessor when entry, successor, and outcome remain. Never remove the
+   reported successor, and retarget inbound navigation directly to it.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
    Record baseline outcome status and candidate ids. If the source lacks an outcome, mark
    **PreExistingOutcomeGap**, leave that section unchanged, and retain it as **Review**.
@@ -89,6 +94,9 @@ A starting-thumbnail match is not terminal evidence. For each `surfaceKey` with 
 two original pages, retain its entry and strongest non-error outcome; absent terminal
 evidence, default to the distinct page with the longest timeline. Aggressive mode still
 requires separate approval to remove more than half of a section's original pages.
+Resolve a visually confirmed `redundantLeadInCandidate` by removing its short predecessor,
+retaining the reported stronger successor, and verifying navigation reaches the successor.
+The signal never authorizes removal of both pages.
 In aggressive mode, an exact adjacent thumbnail match is **Remove** unless objective
 final-state evidence proves a distinct visible outcome; timeline data or a claimed outcome
 role alone is insufficient. Remove an in-flight page between a request and stable response

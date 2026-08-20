@@ -394,6 +394,9 @@ try {
                 flowCriticalReasons = [object[]]$flowCriticalReasons
                 textSignals = [object[]]$textSignals
                 qualityReviewReasons = [object[]]$qualityReviewReasons
+                redundantLeadInCandidate = $false
+                redundantLeadInSuccessorPageId = $null
+                redundantLeadInReason = $null
                 description = $description
                 presenterNotes = $presenterNotes
                 originalUrl = $originalUrl
@@ -433,6 +436,33 @@ try {
                 if ($edge.lockActions -and $targetPage.flowCriticalReasons -notcontains "locked-inbound-navigation") {
                     $targetPage.flowCriticalReasons = [object[]]@($targetPage.flowCriticalReasons + "locked-inbound-navigation")
                 }
+            }
+        }
+    }
+
+    foreach ($sectionGroup in @($pageReports | Group-Object sectionNumber)) {
+        $orderedSectionPages = @($sectionGroup.Group | Sort-Object pageNumber)
+        for ($index = 0; $index -lt $orderedSectionPages.Count - 1; $index++) {
+            $previous = $orderedSectionPages[$index]
+            $current = $orderedSectionPages[$index + 1]
+            $minimumStrongerDuration = [Math]::Max(
+                [int64]($previous.buildTimelineDurationMs * 2),
+                [int64]($previous.buildTimelineDurationMs + 5000)
+            )
+            $laterPageSubsumesLeadIn =
+                $current.thumbnailMatchesPrevious -and
+                $current.surfaceKey -eq $previous.surfaceKey -and
+                $previous.hasBuildTimeline -and
+                $current.hasBuildTimeline -and
+                -not [string]::IsNullOrWhiteSpace([string]$current.baselineHtmlSha256) -and
+                $current.buildTimelineDurationMs -ge $minimumStrongerDuration -and
+                $current.buildTimelineSegmentCount -ge $previous.buildTimelineSegmentCount
+
+            if ($laterPageSubsumesLeadIn) {
+                $previous.redundantLeadInCandidate = $true
+                $previous.redundantLeadInSuccessorPageId = $current.pageId
+                $previous.redundantLeadInReason =
+                    "same starting frame and surface; successor has a self-contained, substantially stronger timeline"
             }
         }
     }
@@ -487,6 +517,7 @@ try {
     Write-Output "Ordered three-page sequence windows: $($sequenceWindows.Count)"
     Write-Output "Matching adjacent thumbnails: $(@($pageReports | Where-Object thumbnailMatchesPrevious).Count)"
     Write-Output "Package-equivalent adjacent pages: $(@($pageReports | Where-Object packageEquivalentToPrevious).Count)"
+    Write-Output "Redundant lead-in candidates: $(@($pageReports | Where-Object redundantLeadInCandidate).Count)"
     Write-Output "Presentation-quality review candidates: $(@($pageReports | Where-Object { $_.qualityReviewReasons.Count -gt 0 }).Count)"
     Write-Output "Pages with locked inbound navigation: $(@($pageReports | Where-Object { $_.inboundLockedNavigationCount -gt 0 }).Count)"
     Write-Output "Pages with review signals: $(@($pageReports | Where-Object { $_.textSignals.Count -gt 0 }).Count)"

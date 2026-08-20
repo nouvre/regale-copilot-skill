@@ -81,6 +81,13 @@ Regale tool calls.
    starting thumbnails alone. Read `buildTimelineDurationMs`, segment/event counts,
    baseline/current HTML fingerprints, and surface. Preserve it unless terminal-state
    evidence confirms setup, error, onboarding, or a genuinely redundant outcome.
+   The inspector's `redundantLeadInCandidate` is the narrow exception to this timeline
+   safeguard. It identifies a short page whose same-surface successor starts with the
+   exact same frame but has a substantially longer, self-contained timeline. Visually
+   confirm the match and that the reported successor contains the useful action/outcome.
+   Then classify the short predecessor **Remove** only when the successor, section entry,
+   and outcome all remain; never remove the reported successor. Retarget inbound
+   navigation directly to that successor.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
    Record baseline outcome status and exact outcome-candidate page ids before writes. If
    all three cannot be identified, mark the gap **PreExistingOutcomeGap** and make no
@@ -132,6 +139,9 @@ two or more original pages, retain at least its entry and strongest non-error ou
 when terminal evidence is unavailable, default to the distinct page with the longest
 timeline. Do not remove more than half of a section's original pages without presenting
 the exact larger plan and receiving separate approval, even in aggressive mode.
+Resolve every visually confirmed `redundantLeadInCandidate` before unrelated cleanup:
+remove the short predecessor, retain its reported stronger successor, and verify inbound
+navigation reaches that successor. The signal is not permission to remove both pages.
 A unique timeline or narration does not preserve a confirmed onboarding page, valueless
 intermediate state, or visually redundant frame when the retained predecessor/successor
 still supplies the action and outcome. A section marked **PreExistingOutcomeGap** is frozen

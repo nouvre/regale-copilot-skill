@@ -988,6 +988,12 @@ list below; continue at **Aggressive cleanup in a copy**.
    **SequenceBreak**. Read its `buildTimelineDurationMs`, segment/event counts,
    baseline/current HTML fingerprints, and `surfaceKey`. Preserve it unless objective
    terminal-state evidence confirms setup, error, onboarding, or a redundant outcome.
+   `redundantLeadInCandidate` is the narrow exception to that protection. It reports a
+   short predecessor whose same-surface successor starts identically but has a
+   substantially longer, self-contained timeline. Visually confirm the exact match and
+   that the reported successor carries the useful action/outcome. Classify only the short
+   predecessor **Remove** when entry, successor, and outcome remain. Never remove the
+   reported successor; record it as the retarget destination for inbound navigation.
 3. Before writes, state an internal flow contract for every section: its entry state, at
    least one retained action/transition, and its audience-facing outcome. Record
    `baselineOutcomeStatus` and exact outcome-candidate page ids. If those three roles
@@ -1103,6 +1109,10 @@ frustration, urgency, or a request to remove one page.
    timeline. Do not remove more than half of a section's original pages without presenting
    the exact larger plan and obtaining separate approval; selecting aggressive mode is not
    that approval.
+   Resolve every visually confirmed `redundantLeadInCandidate` before unrelated cleanup.
+   Remove the short predecessor, retain the reported stronger successor, and verify every
+   affected inbound edge reaches that successor. This signal never permits removing both
+   pages.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one
