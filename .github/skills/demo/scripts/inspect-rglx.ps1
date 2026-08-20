@@ -404,6 +404,31 @@ try {
         }
     }
 
+    $sequenceWindows = @()
+    foreach ($sectionGroup in @($pageReports | Group-Object sectionNumber | Sort-Object { [int]$_.Name })) {
+        $orderedSectionPages = @($sectionGroup.Group | Sort-Object pageNumber)
+        if ($orderedSectionPages.Count -lt 3) { continue }
+
+        for ($index = 0; $index -le $orderedSectionPages.Count - 3; $index++) {
+            $previous = $orderedSectionPages[$index]
+            $current = $orderedSectionPages[$index + 1]
+            $next = $orderedSectionPages[$index + 2]
+            $sequenceWindows += [pscustomobject]@{
+                sectionNumber = $current.sectionNumber
+                sectionTitle = $current.sectionTitle
+                previousPageNumber = $previous.pageNumber
+                previousPageId = $previous.pageId
+                previousThumbnailPath = $previous.thumbnailPath
+                currentPageNumber = $current.pageNumber
+                currentPageId = $current.pageId
+                currentThumbnailPath = $current.thumbnailPath
+                nextPageNumber = $next.pageNumber
+                nextPageId = $next.pageId
+                nextThumbnailPath = $next.thumbnailPath
+            }
+        }
+    }
+
     $report = [pscustomobject]@{
         projectPath = $projectFile
         inspectionPath = $inspectionFile
@@ -414,6 +439,7 @@ try {
         pageCount = $pageReports.Count
         sections = [object[]]$sectionReports
         pages = [object[]]$pageReports
+        sequenceWindows = [object[]]$sequenceWindows
     }
 
     $reportPath = Join-Path $outputRoot "report.json"
@@ -425,6 +451,7 @@ try {
     if ($backupPath) { Write-Output "Backup: $backupPath" }
     if ($aggressiveCopyPath) { Write-Output "Aggressive copy: $aggressiveCopyPath" }
     Write-Output "Pages: $($pageReports.Count)"
+    Write-Output "Ordered three-page sequence windows: $($sequenceWindows.Count)"
     Write-Output "Matching adjacent thumbnails: $(@($pageReports | Where-Object thumbnailMatchesPrevious).Count)"
     Write-Output "Package-equivalent adjacent pages: $(@($pageReports | Where-Object packageEquivalentToPrevious).Count)"
     Write-Output "Presentation-quality review candidates: $(@($pageReports | Where-Object { $_.qualityReviewReasons.Count -gt 0 }).Count)"

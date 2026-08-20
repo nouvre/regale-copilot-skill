@@ -30,9 +30,13 @@ that concrete precondition. Otherwise start with a short status statement and to
 1. Save the open project, then run
    `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. Do not remove anything
    unless the report contains an existing `backupPath`.
-2. Treat each thumbnail as a starting frame. Also inspect its build timeline, HTML state,
-   narration, and navigation roles. Matching thumbnails are never removal evidence.
-   Review each predecessor/current/successor trio and make a defect ledger for onboarding,
+2. Treat each thumbnail as a starting frame. Do not bulk-view all thumbnails as one
+   gallery. Use `report.json.sequenceWindows` in section/page order and view each labeled
+   previous/current/next trio together. Record whether current follows previous, next
+   follows current, and removing current makes previous -> next more coherent without
+   losing a stable outcome. Mark current **SequenceBreak** when that last test is true.
+   Also inspect its build timeline, HTML state, narration, and navigation roles. Matching
+   thumbnails are never removal evidence. Make a defect ledger for onboarding,
    setup/sign-in, valueless intermediate, prompt-only composer without visible context,
    and visibly redundant adjacent states. Record the section/page ids and retained
    predecessor/successor for each candidate.
@@ -43,6 +47,8 @@ that concrete precondition. Otherwise start with a short status statement and to
    Treat a stable response as the protected outcome, never as the continuity-removal
    candidate. For prompt A -> contextless prompt B -> response A, preserve prompt A and
    response A, remove only prompt B, and record both survivor page ids before writing.
+   The ordered screenshot story controls the coherence verdict. Metadata may verify or
+   block an edit but cannot make an incoherent middle screenshot part of the story.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
    Preserve build timelines, navigation sources/targets, and unique narration unless
    another retained page fulfills the same role.
@@ -62,6 +68,9 @@ original. Refuse an open project whose filename contains `.aggressive-refine-` o
 path is inside `Regale\Aggressive Refinements`; the user must reopen the original before
 another run. Visual evidence is still required, but deletion limits and failed-navigation
 protection are waived in the copy. Resolve the defect ledger before unrelated cleanup.
+In aggressive mode, a visually confirmed **SequenceBreak** is **Remove** when previous ->
+next is more coherent and current is not a stable outcome. Timeline, click, narration, or
+navigation metadata alone cannot protect it.
 In aggressive mode, an exact adjacent thumbnail match is **Remove** unless objective
 final-state evidence proves a distinct visible outcome; timeline data or a claimed outcome
 role alone is insufficient. Remove an in-flight page between a request and stable response
@@ -73,8 +82,9 @@ Unique timeline data does not protect a confirmed onboarding, valueless intermed
 visually redundant page when its neighbors retain the action and outcome. A missing
 section outcome does not protect unrelated confirmed junk when removal does not worsen
 that gap; retain the gap as **Review** and do not delete other pages merely because the
-section is incomplete. Reinspect every ledger item, retain one visible page per section, list all broken
-navigation, identify `aggressiveCopyPath` as the project currently open in Regale, label
+section is incomplete. Reinspect every ledger item, retain one visible page per section,
+list all broken navigation, rerun and review refreshed `sequenceWindows`, identify
+`aggressiveCopyPath` as the project currently open in Regale, label
 the copy not presentation-ready, and never publish it.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.

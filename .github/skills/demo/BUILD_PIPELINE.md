@@ -952,7 +952,12 @@ list below; continue at **Aggressive cleanup in a copy**.
    shell command allowed in refinement mode. Do not remove anything unless `backupPath`
    exists in `report.json`; include that path in the final summary.
 2. Read its `report.json`. For every visible page in section/page order, inspect the
-   extracted thumbnail as its **starting frame**, then read its build-timeline flag,
+   extracted thumbnail as its **starting frame**. Do not use one bulk `View N images`
+   gallery as the audit. Iterate `sequenceWindows` in section/page order and view each
+   labeled previous/current/next trio together. For every window record whether current
+   visibly follows previous, whether next visibly follows current, and whether removing
+   current makes previous -> next more coherent without losing a stable outcome. Mark
+   current **SequenceBreak** when that last test is true. Then read its build-timeline flag,
    baseline/current HTML fingerprints, narration, incoming targets, and outgoing actions.
    Assign **Keep**, **Remove**, or **Review**. Review every consecutive
    predecessor/current/successor trio and create a defect ledger before any write. The
@@ -975,6 +980,9 @@ list below; continue at **Aggressive cleanup in a copy**.
    that must survive. For prompt A -> contextless prompt B -> response A, the only
    continuity removal candidate is prompt B. Never delete response A to make the remaining
    sequence appear consistent.
+   The ordered screenshot story is primary for coherence. Timeline, narration, click, and
+   navigation metadata can verify or block a proposed edit, but cannot turn an incoherent
+   middle screenshot into a meaningful story step.
 3. Before writes, state an internal flow contract for every section: its entry state, at
    least one retained action/transition, and its audience-facing outcome. If those three
    roles cannot be identified, make no deletions in that section and mark it **Review**.
@@ -997,7 +1005,8 @@ list below; continue at **Aggressive cleanup in a copy**.
    shape navigation writes are the only exception.
 6. Save, rerun the inspector without `-CreateBackup`, and compare the result with the
    original report. A section passes only if its page-count floor, entry/action/outcome
-   contract, build-timeline pages, and navigation targets remain intact. Otherwise stop,
+   contract, build-timeline pages, navigation targets, and refreshed `sequenceWindows`
+   remain intact and visually coherent. Otherwise stop,
    identify the backup, and do not call refinement complete.
 
 The agent may say refinement is complete only when the verdict count equals the original
@@ -1076,6 +1085,10 @@ frustration, urgency, or a request to remove one page.
    stop editing, discard the damaged copy, create and open a fresh aggressive copy from
    the immutable source path, and report the failed refinement without retrying that
    deletion.
+   More generally, a visually confirmed **SequenceBreak** is **Remove** when its previous
+   and next screenshots form a more coherent sequence and current is not a stable
+   audience-facing outcome. A timeline, click, narration, or navigation role does not
+   protect a sequence break by itself.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one
@@ -1083,8 +1096,9 @@ frustration, urgency, or a request to remove one page.
    unrelated confirmed onboarding, duplicate, or valueless intermediate page when removal
    does not worsen that gap. Do not delete other pages merely because the section is
    incomplete; retain the outcome gap as **Review**.
-5. Save and re-inspect the copy. Recheck every original defect-ledger entry and report it
-   as removed or retained with a concrete reason. Do not roll back to or overwrite the
+5. Save and re-inspect the copy. Review the refreshed `sequenceWindows` in order, recheck
+   every original defect-ledger entry, and report it as removed or retained with a
+   concrete reason. Do not roll back to or overwrite the
    source. Finish with
    `aggressive copy created - repair required`, the source path, copy path, backup path,
    removals, retained Review pages, and every broken/dangling navigation edge. State that

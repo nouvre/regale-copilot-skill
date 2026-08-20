@@ -54,7 +54,13 @@ Regale tool calls.
 1. Confirm `remove_page`, `get_shapes`, and `save_project` are visible. Save once, then run
    `scripts\inspect-rglx.ps1 -ProjectPath "PATH" -CreateBackup`. Do not remove anything
    unless the report contains an existing `backupPath`.
-2. Inspect every thumbnail as a starting frame, not the whole page. Also read its build
+2. Inspect every thumbnail as a starting frame, not the whole page. Do not bulk-view all
+   project thumbnails as one undifferentiated gallery. Use the inspector's
+   `sequenceWindows` in section/page order and view each labeled previous/current/next
+   trio together. For every trio record: whether current visibly follows previous,
+   whether next visibly follows current, and whether removing current makes
+   previous -> next more coherent without losing a stable outcome. Mark current
+   **SequenceBreak** when that final test is true. Also read its build
    timeline, HTML/baseline fingerprints, narration, and navigation roles. A matching
    thumbnail is never removal evidence. Assign **Keep**, **Remove**, or **Review** to every
    visible page before writes. Review every consecutive predecessor/current/successor
@@ -71,6 +77,9 @@ Regale tool calls.
    A stable response is the protected outcome, not the removal candidate. For a sequence
    prompt A -> contextless prompt B -> response A, preserve prompt A and response A, remove
    only prompt B, and record the surviving prompt/response page ids before any write.
+   The ordered screenshot story is primary for this verdict. Timeline, narration, and
+   navigation metadata may verify or block an edit, but cannot make a visually incoherent
+   middle screenshot part of the story.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
    If all three cannot be identified, make no deletions in that section. Preserve build
    timelines, navigation sources/targets, entry/outcome pages, and unique narration unless
@@ -84,7 +93,8 @@ Regale tool calls.
    **Review**; do not delete it, retry it, or mark the whole refinement blocked.
 6. Re-list and inspect shapes on every retained page in the changed section, save, rerun
    the inspector without `-CreateBackup`, and verify the entry/action/outcome flow remains
-   intact. Report the backup path and flow check.
+   intact. Recheck the changed section's refreshed `sequenceWindows` and verify the
+   retained screenshot order is coherent. Report the backup path and flow check.
 
 **Review is a successful conservative verdict.** Finish as `complete with review items`
 when every page was inspected and retained flow is valid. Use `blocked` only when the
@@ -110,6 +120,10 @@ prompt and response survivor ids before deleting an intervening composer. Attemp
 each navigation repair once, but after a failed repair the
 explicit aggressive selection permits deletion in the copy. Consecutive removals and the
 25-percent limit are waived. Resolve the defect ledger before considering other cleanup.
+A visually confirmed **SequenceBreak** is **Remove** in aggressive mode when its previous
+and next pages form the more coherent sequence and current is not a stable audience-facing
+outcome. Metadata cannot protect the sequence break merely because it contains a timeline,
+click, narration, or navigation role.
 A unique timeline or narration does not preserve a confirmed onboarding page, valueless
 intermediate state, or visually redundant frame when the retained predecessor/successor
 still supplies the action and outcome. A missing section outcome does not protect an
