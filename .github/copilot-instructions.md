@@ -62,6 +62,8 @@ After mode selection, start with a short status statement followed by Regale too
    segment/event counts, HTML fingerprints, and `surfaceKey`; preserve it unless terminal
    evidence confirms setup, error, onboarding, or a redundant outcome.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
+   Record baseline outcome status and candidate ids. If the source lacks an outcome, mark
+   **PreExistingOutcomeGap**, leave that section unchanged, and retain it as **Review**.
    Preserve build timelines, navigation sources/targets, and unique narration unless
    another retained page fulfills the same role.
 4. Automatically remove at most `max(1, floor(original pages * 0.25))` pages per section,
@@ -95,15 +97,15 @@ composer between a retained request and response even when its prompt text diffe
 iterative prompting only when the page visibly includes the prior response and leads to a
 separate retained outcome; different prompt text alone is not audience value.
 Unique timeline data does not protect a confirmed onboarding, valueless intermediate, or
-visually redundant page when its neighbors retain the action and outcome. A missing
-section outcome does not protect unrelated confirmed junk when removal does not worsen
-that gap; retain the gap as **Review** and do not delete other pages merely because the
-section is incomplete. Reinspect every ledger item, retain one visible page per section,
+visually redundant page when its neighbors retain the action and outcome. Freeze every
+section marked **PreExistingOutcomeGap** and retain the whole section as **Review**.
+Reinspect every ledger item, retain one visible page per section,
 list all broken navigation, rerun and review refreshed `sequenceWindows`, identify
 `aggressiveCopyPath` as the project currently open in Regale, label
 the copy not presentation-ready, and never publish it.
-If all intended outcomes are missing after editing, or a multi-page original surface has
-no outcome-capable retained page, discard the copy and report failed refinement.
+Discard the copy only when an outcome-capable page present in the source is absent after
+editing. A **PreExistingOutcomeGap** is not a refinement failure; never require refinement
+to create an outcome absent from the source.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.
 Do not fall back to Regale image calls, metadata-only editing, page hiding, or text work.

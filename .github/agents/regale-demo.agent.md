@@ -86,7 +86,9 @@ Regale tool calls.
    baseline/current HTML fingerprints, and surface. Preserve it unless terminal-state
    evidence confirms setup, error, onboarding, or a genuinely redundant outcome.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
-   If all three cannot be identified, make no deletions in that section. Preserve build
+   Record baseline outcome status and exact outcome-candidate page ids before writes. If
+   all three cannot be identified, mark the gap **PreExistingOutcomeGap** and make no
+   deletions in that section. Preserve build
    timelines, navigation sources/targets, entry/outcome pages, and unique narration unless
    another retained page demonstrably fulfills the same role.
 4. Automatically remove at most `max(1, floor(original pages * 0.25))` pages per section,
@@ -136,18 +138,20 @@ timeline. Do not remove more than half of a section's original pages without pre
 the exact larger plan and receiving separate approval, even in aggressive mode.
 A unique timeline or narration does not preserve a confirmed onboarding page, valueless
 intermediate state, or visually redundant frame when the retained predecessor/successor
-still supplies the action and outcome. A missing section outcome does not protect an
-unrelated confirmed onboarding, duplicate, or valueless intermediate page when its
-removal does not worsen the outcome gap. Do not remove other pages merely because the
-section is incomplete; mark that gap **Review**. Retain at least one visible page per
+still supplies the action and outcome. A section marked **PreExistingOutcomeGap** is frozen
+for this pass: make no deletions there, and mark the whole section **Review**. Retain at
+least one visible page per
 section. Reinspect every ledger item after
 edits and state whether it was removed or retained and why. Finish as
 `aggressive copy created - repair required`, list every known broken or missing navigation
 edge, state that the exact `aggressiveCopyPath` is the project currently open in Regale,
 and state that the copy is not presentation-ready. Never publish it.
 If post-inspection says every intended outcome is missing, or a multi-page original
-surface has no retained outcome-capable page, refinement failed: discard the copy and
-report the failure instead of calling it complete.
+surface that originally had an outcome-capable page has none retained, refinement failed:
+discard the copy and report the regression instead of calling it complete. A section or
+surface marked **PreExistingOutcomeGap** does not fail the project: it must remain
+unchanged and be reported as **Review**. Never require refinement to create an outcome
+that was absent from the source.
 
 If the project has no saved path, save it and read the path again. If the inspector or
 local image viewer is unavailable, stop and report that exact precondition; do not fall

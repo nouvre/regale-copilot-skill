@@ -989,8 +989,11 @@ list below; continue at **Aggressive cleanup in a copy**.
    baseline/current HTML fingerprints, and `surfaceKey`. Preserve it unless objective
    terminal-state evidence confirms setup, error, onboarding, or a redundant outcome.
 3. Before writes, state an internal flow contract for every section: its entry state, at
-   least one retained action/transition, and its audience-facing outcome. If those three
-   roles cannot be identified, make no deletions in that section and mark it **Review**.
+   least one retained action/transition, and its audience-facing outcome. Record
+   `baselineOutcomeStatus` and exact outcome-candidate page ids. If those three roles
+   cannot be identified in the source, mark **PreExistingOutcomeGap**, make no deletions in
+   that section, and retain it as **Review**. Refinement is not responsible for creating a
+   missing outcome.
    Preserve pages carrying `build-timeline`, `inbound-navigation-target`,
    `outbound-navigation`, `section-entry`, `section-outcome`, or unique narration unless
    a confirmed artifact can be removed while another retained page fulfills that role.
@@ -1103,10 +1106,8 @@ frustration, urgency, or a request to remove one page.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one
-   visible page in every section. A missing audience-facing outcome does not protect an
-   unrelated confirmed onboarding, duplicate, or valueless intermediate page when removal
-   does not worsen that gap. Do not delete other pages merely because the section is
-   incomplete; retain the outcome gap as **Review**.
+   visible page in every section. A section marked **PreExistingOutcomeGap** is frozen for
+   this pass: do not delete any page in it, and retain the whole section as **Review**.
 5. Save and re-inspect the copy. Review the refreshed `sequenceWindows` in order, recheck
    every original defect-ledger entry, and report it as removed or retained with a
    concrete reason. Do not roll back to or overwrite the
@@ -1115,9 +1116,12 @@ frustration, urgency, or a request to remove one page.
    removals, retained Review pages, and every broken/dangling navigation edge. State that
    the exact copy path is the project currently open in Regale and that the copy is not
    presentation-ready. Do not publish it.
-   If post-inspection says all intended outcomes are missing, or any `surfaceKey` that had
-   multiple original pages has no retained outcome-capable page, refinement failed. Stop,
-   discard the copy, and report the failure instead of calling refinement complete.
+   Compare post-inspection outcome status with the recorded baseline. Refinement fails only
+   when an outcome-capable page or surface present in the source is absent after editing.
+   Stop, discard the copy, and report that regression. A section or surface marked
+   **PreExistingOutcomeGap** must remain unchanged and be reported as **Review**; it does
+   not invalidate cleanup completed in other sections. Never require the copy to contain
+   an outcome the source never had.
 
 ---
 
