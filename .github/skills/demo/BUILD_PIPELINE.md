@@ -957,12 +957,19 @@ list below; continue at **Aggressive cleanup in a copy**.
    Assign **Keep**, **Remove**, or **Review**. Review every consecutive
    predecessor/current/successor trio and create a defect ledger before any write. The
    ledger must include every onboarding or first-run dialog, setup/sign-in screen,
-   request-to-result intermediate state with no audience-facing value, blocked/error
-   state, and adjacent frame with no meaningful visible progression. Record its exact
+   request-to-result intermediate state with no audience-facing value, prompt-only
+   composer without visible prior-response context, blocked/error state, and adjacent
+   frame with no meaningful visible progression. Record its exact
    section/page ids, evidence, and intended retained predecessor/successor. A matching
    thumbnail is never sufficient removal evidence, but an exact match plus the absence of
    a distinct visible story role is strong duplicate evidence. Do not call `capture_view`
    or `render_page`.
+   For every generative-chat section, build a semantic continuity table from the
+   thumbnails before assigning verdicts. For each page record a short visible prompt
+   excerpt, whether a response is visible, and which earlier prompt the response answers.
+   Do not infer continuity from timeline presence, narration, or page titles. Flag a prompt
+   followed by a different prompt before its response, and a response whose immediately
+   preceding prompt does not match it.
 3. Before writes, state an internal flow contract for every section: its entry state, at
    least one retained action/transition, and its audience-facing outcome. If those three
    roles cannot be identified, make no deletions in that section and mark it **Review**.
@@ -1053,7 +1060,12 @@ frustration, urgency, or a request to remove one page.
    claimed outcome role is not objective final-state evidence. An in-flight loading or
    generating page between a request and stable response is **Remove** unless its
    thumbnail communicates a unique audience-facing fact; retarget the request action
-   directly to the response.
+   directly to the response. A prompt-only composer between a retained request and
+   response is **Remove** even if it contains different prompt text. Preserve iterative
+   prompting only when the page visibly includes the prior response for context and leads
+   to a separate retained outcome. Different prompt text alone is not audience value. If
+   the continuity table is prompt A -> contextless prompt B -> response to prompt A, remove
+   prompt B and retarget prompt A directly to its response.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one

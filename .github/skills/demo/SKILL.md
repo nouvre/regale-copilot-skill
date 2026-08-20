@@ -55,9 +55,15 @@ Regale tool calls.
    thumbnail is never removal evidence. Assign **Keep**, **Remove**, or **Review** to every
    visible page before writes. Review every consecutive predecessor/current/successor
    trio and create a defect ledger for onboarding dialogs, setup or sign-in states,
-   request-to-result intermediate states with no audience value, and adjacent frames with
-   no meaningful visible progression. Record exact section/page ids and the retained
+   request-to-result intermediate states with no audience value, prompt-only composers
+   without visible prior context, and adjacent frames with no meaningful visible
+   progression. Record exact section/page ids and the retained
    predecessor/successor for every candidate. Do not call `capture_view` or `render_page`.
+   For every generative-chat section, also create a semantic continuity table with one row
+   per page: visible prompt excerpt, whether a response is visible, and which earlier
+   prompt that response answers. Read this from the thumbnails; timeline presence and page
+   titles are not substitutes. Flag any prompt that is followed by a different prompt
+   before its response, or any response whose immediately preceding prompt does not match.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
    If all three cannot be identified, make no deletions in that section. Preserve build
    timelines, navigation sources/targets, entry/outcome pages, and unique narration unless
@@ -88,7 +94,11 @@ the only page in the section or objective final-state evidence proves a distinct
 outcome; a different timeline or claimed outcome role is not such evidence. A loading,
 generating, or other in-flight page between a request and its stable response is also
 **Remove** unless its thumbnail communicates a unique audience-facing fact; the click can
-navigate directly from request to response. Attempt each navigation repair once, but after a failed repair the
+navigate directly from request to response. A prompt-only composer between a retained
+request and response is **Remove** even when its prompt text differs. Keep iterative
+prompting only when that page visibly includes the prior response for context and leads to
+a separate retained outcome; different prompt text alone is not audience value. Attempt
+each navigation repair once, but after a failed repair the
 explicit aggressive selection permits deletion in the copy. Consecutive removals and the
 25-percent limit are waived. Resolve the defect ledger before considering other cleanup.
 A unique timeline or narration does not preserve a confirmed onboarding page, valueless

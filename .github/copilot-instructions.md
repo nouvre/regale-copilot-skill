@@ -41,8 +41,13 @@ After mode selection, start with a short status statement followed by Regale too
 2. Treat each thumbnail as a starting frame. Also inspect its build timeline, HTML state,
    narration, and navigation roles. Matching thumbnails are never removal evidence.
    Review each predecessor/current/successor trio and make a defect ledger for onboarding,
-   setup/sign-in, valueless intermediate, and visibly redundant adjacent states. Record
-   the section/page ids and retained predecessor/successor for each candidate.
+   setup/sign-in, valueless intermediate, prompt-only composer without visible context,
+   and visibly redundant adjacent states. Record the section/page ids and retained
+   predecessor/successor for each candidate.
+   For generative-chat sections, transcribe a short visible prompt excerpt per page, mark
+   whether a response is visible, and identify which prior prompt it answers. Flag a new
+   prompt inserted before the prior prompt's response and a response preceded by a
+   different prompt. Timeline metadata and page titles do not establish this continuity.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
    Preserve build timelines, navigation sources/targets, and unique narration unless
    another retained page fulfills the same role.
@@ -65,7 +70,10 @@ protection are waived in the copy. Resolve the defect ledger before unrelated cl
 In aggressive mode, an exact adjacent thumbnail match is **Remove** unless objective
 final-state evidence proves a distinct visible outcome; timeline data or a claimed outcome
 role alone is insufficient. Remove an in-flight page between a request and stable response
-unless its thumbnail communicates a unique audience-facing fact.
+unless its thumbnail communicates a unique audience-facing fact. Remove a prompt-only
+composer between a retained request and response even when its prompt text differs. Keep
+iterative prompting only when the page visibly includes the prior response and leads to a
+separate retained outcome; different prompt text alone is not audience value.
 Unique timeline data does not protect a confirmed onboarding, valueless intermediate, or
 visually redundant page when its neighbors retain the action and outcome. A missing
 section outcome does not protect unrelated confirmed junk when removal does not worsen
