@@ -257,6 +257,21 @@ try {
             $baselineHtml = Get-ZipEntryText -Archive $archive -EntryName "Html/$baselineHtmlId.html"
             $timelineId = [string]$page.BuildTimelineId
             $timeline = Get-ZipEntryText -Archive $archive -EntryName "Timelines/$timelineId.json"
+            $timelineDurationMs = 0
+            $timelineSegmentCount = 0
+            $timelineEventCount = 0
+            if (-not [string]::IsNullOrWhiteSpace($timeline)) {
+                try {
+                    $timelineData = $timeline | ConvertFrom-Json
+                    $timelineDurationMs = [int64]$timelineData.durationMs
+                    $timelineSegmentCount = @($timelineData.segments).Count
+                    $timelineEventCount = @($timelineData.events).Count
+                } catch {
+                    $timelineDurationMs = 0
+                    $timelineSegmentCount = 0
+                    $timelineEventCount = 0
+                }
+            }
 
             $navigation = @()
             foreach ($shape in @($page.SelectNodes(".//*[ClickAction]"))) {
@@ -292,6 +307,20 @@ try {
             $timelineHash = Get-StringSha256 $timeline
             $description = Get-NodeText $page.Description
             $presenterNotes = Get-NodeText $page.PresenterNotes
+            $originalUrl = [string]$page.OriginalUrl
+            $surfaceKey = $originalUrl
+            try {
+                $surfaceUri = [System.Uri]$originalUrl
+                $firstPathSegment = @($surfaceUri.AbsolutePath.Trim("/").Split("/") | Where-Object {
+                    -not [string]::IsNullOrWhiteSpace($_)
+                } | Select-Object -First 1)
+                $surfaceKey = $surfaceUri.Host
+                if ($firstPathSegment.Count -gt 0) {
+                    $surfaceKey = "$surfaceKey/$($firstPathSegment[0])"
+                }
+            } catch {
+                $surfaceKey = $originalUrl
+            }
 
             $packageEquivalentToPrevious = $false
             if ($null -ne $previousPage -and $thumbnailMatchesPrevious) {
@@ -353,6 +382,9 @@ try {
                 hasBuildTimeline = -not [string]::IsNullOrWhiteSpace($timelineId)
                 buildTimelineId = $timelineId
                 buildTimelineSha256 = $timelineHash
+                buildTimelineDurationMs = $timelineDurationMs
+                buildTimelineSegmentCount = $timelineSegmentCount
+                buildTimelineEventCount = $timelineEventCount
                 navigation = [object[]]$navigation
                 navigationSignature = $navigationSignature
                 inboundNavigationCount = 0
@@ -364,7 +396,8 @@ try {
                 qualityReviewReasons = [object[]]$qualityReviewReasons
                 description = $description
                 presenterNotes = $presenterNotes
-                originalUrl = [string]$page.OriginalUrl
+                originalUrl = $originalUrl
+                surfaceKey = $surfaceKey
                 htmlFileId = $htmlId
                 baselineHtmlFileId = $baselineHtmlId
             }

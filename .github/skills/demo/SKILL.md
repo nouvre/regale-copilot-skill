@@ -76,6 +76,11 @@ Regale tool calls.
    The ordered screenshot story is primary for this verdict. Timeline, narration, and
    navigation metadata may verify or block an edit, but cannot make a visually incoherent
    middle screenshot part of the story.
+   A `sequenceWindows` thumbnail is only the page's starting state. If current has a
+   distinct nonempty build timeline, do not mark it **SequenceBreak** from the three
+   starting thumbnails alone. Read `buildTimelineDurationMs`, segment/event counts,
+   baseline/current HTML fingerprints, and surface. Preserve it unless terminal-state
+   evidence confirms setup, error, onboarding, or a genuinely redundant outcome.
 3. Define each section's retained entry, action/transition, and audience-facing outcome.
    If all three cannot be identified, make no deletions in that section. Preserve build
    timelines, navigation sources/targets, entry/outcome pages, and unique narration unless
@@ -120,6 +125,11 @@ A visually confirmed **SequenceBreak** is **Remove** in aggressive mode when its
 and next pages form the more coherent sequence and current is not a stable audience-facing
 outcome. Metadata cannot protect the sequence break merely because it contains a timeline,
 click, narration, or navigation role.
+A starting-thumbnail match is not terminal-state evidence. For every `surfaceKey` that had
+two or more original pages, retain at least its entry and strongest non-error outcome page;
+when terminal evidence is unavailable, default to the distinct page with the longest
+timeline. Do not remove more than half of a section's original pages without presenting
+the exact larger plan and receiving separate approval, even in aggressive mode.
 A unique timeline or narration does not preserve a confirmed onboarding page, valueless
 intermediate state, or visually redundant frame when the retained predecessor/successor
 still supplies the action and outcome. A missing section outcome does not protect an
@@ -131,6 +141,9 @@ edits and state whether it was removed or retained and why. Finish as
 `aggressive copy created - repair required`, list every known broken or missing navigation
 edge, state that the exact `aggressiveCopyPath` is the project currently open in Regale,
 and state that the copy is not presentation-ready. Never publish it.
+If post-inspection says every intended outcome is missing, or a multi-page original
+surface has no retained outcome-capable page, refinement failed: discard the copy and
+report the failure instead of calling it complete.
 
 If the project has no saved path, save it and read the path again. If the inspector or
 local image viewer is unavailable, stop and report that exact precondition; do not fall

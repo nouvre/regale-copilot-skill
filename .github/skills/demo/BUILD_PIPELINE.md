@@ -983,6 +983,11 @@ list below; continue at **Aggressive cleanup in a copy**.
    The ordered screenshot story is primary for coherence. Timeline, narration, click, and
    navigation metadata can verify or block a proposed edit, but cannot turn an incoherent
    middle screenshot into a meaningful story step.
+   `sequenceWindows` contains starting thumbnails, not terminal states. If current has a
+   distinct nonempty build timeline, the three thumbnails alone cannot establish
+   **SequenceBreak**. Read its `buildTimelineDurationMs`, segment/event counts,
+   baseline/current HTML fingerprints, and `surfaceKey`. Preserve it unless objective
+   terminal-state evidence confirms setup, error, onboarding, or a redundant outcome.
 3. Before writes, state an internal flow contract for every section: its entry state, at
    least one retained action/transition, and its audience-facing outcome. If those three
    roles cannot be identified, make no deletions in that section and mark it **Review**.
@@ -1089,6 +1094,12 @@ frustration, urgency, or a request to remove one page.
    and next screenshots form a more coherent sequence and current is not a stable
    audience-facing outcome. A timeline, click, narration, or navigation role does not
    protect a sequence break by itself.
+   A starting-thumbnail match is not terminal-state evidence. For every `surfaceKey` with
+   at least two original pages, retain its entry and strongest non-error outcome page. If
+   terminal-state evidence is unavailable, default to the distinct page with the longest
+   timeline. Do not remove more than half of a section's original pages without presenting
+   the exact larger plan and obtaining separate approval; selecting aggressive mode is not
+   that approval.
 4. Attempt unlock/retarget once for each confirmed removal. If repair fails, the explicit
    selection permits deletion **only in the aggressive copy**. The 25-percent budget,
    consecutive-removal restriction, and two-page floor are waived, but retain at least one
@@ -1104,6 +1115,9 @@ frustration, urgency, or a request to remove one page.
    removals, retained Review pages, and every broken/dangling navigation edge. State that
    the exact copy path is the project currently open in Regale and that the copy is not
    presentation-ready. Do not publish it.
+   If post-inspection says all intended outcomes are missing, or any `surfaceKey` that had
+   multiple original pages has no retained outcome-capable page, refinement failed. Stop,
+   discard the copy, and report the failure instead of calling refinement complete.
 
 ---
 

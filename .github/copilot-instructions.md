@@ -57,6 +57,10 @@ After mode selection, start with a short status statement followed by Regale too
    response A, remove only prompt B, and record both survivor page ids before writing.
    The ordered screenshot story controls the coherence verdict. Metadata may verify or
    block an edit but cannot make an incoherent middle screenshot part of the story.
+   Sequence thumbnails are starting states. Do not mark a page with a distinct nonempty
+   timeline **SequenceBreak** from starting thumbnails alone. Read timeline duration,
+   segment/event counts, HTML fingerprints, and `surfaceKey`; preserve it unless terminal
+   evidence confirms setup, error, onboarding, or a redundant outcome.
 3. Preserve a retained entry, action/transition, and audience-facing outcome per section.
    Preserve build timelines, navigation sources/targets, and unique narration unless
    another retained page fulfills the same role.
@@ -79,6 +83,10 @@ protection are waived in the copy. Resolve the defect ledger before unrelated cl
 In aggressive mode, a visually confirmed **SequenceBreak** is **Remove** when previous ->
 next is more coherent and current is not a stable outcome. Timeline, click, narration, or
 navigation metadata alone cannot protect it.
+A starting-thumbnail match is not terminal evidence. For each `surfaceKey` with at least
+two original pages, retain its entry and strongest non-error outcome; absent terminal
+evidence, default to the distinct page with the longest timeline. Aggressive mode still
+requires separate approval to remove more than half of a section's original pages.
 In aggressive mode, an exact adjacent thumbnail match is **Remove** unless objective
 final-state evidence proves a distinct visible outcome; timeline data or a claimed outcome
 role alone is insufficient. Remove an in-flight page between a request and stable response
@@ -94,6 +102,8 @@ section is incomplete. Reinspect every ledger item, retain one visible page per 
 list all broken navigation, rerun and review refreshed `sequenceWindows`, identify
 `aggressiveCopyPath` as the project currently open in Regale, label
 the copy not presentation-ready, and never publish it.
+If all intended outcomes are missing after editing, or a multi-page original surface has
+no outcome-capable retained page, discard the copy and report failed refinement.
 
 If the inspector or local image viewer is unavailable, stop and name that precondition.
 Do not fall back to Regale image calls, metadata-only editing, page hiding, or text work.
